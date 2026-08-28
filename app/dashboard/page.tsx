@@ -431,13 +431,19 @@ function useDashboard() {
 /* Persona Header Bar                                                   */
 /* ------------------------------------------------------------------ */
 
-function PersonaSwitcher() {
+function PersonaSwitcher({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+}) {
   return (
     <div className="flex items-center gap-3 rounded-xl border border-border bg-muted/40 p-1">
       <span className="hidden pl-2 pr-1 text-xs font-medium text-muted-foreground sm:block">
         Demo as
       </span>
-      <Tabs defaultValue="department">
+      <Tabs value={value} onValueChange={onChange}>
         <TabsList variant="line" className="h-9">
           <TabsTrigger value="department" className="gap-2 px-3">
             <Building2 /> Department
@@ -454,7 +460,13 @@ function PersonaSwitcher() {
   );
 }
 
-function Header() {
+function Header({
+  persona,
+  onPersonaChange,
+}: {
+  persona: string;
+  onPersonaChange: (value: string) => void;
+}) {
   return (
     <header className="sticky top-0 z-30 border-b border-border bg-background/80 backdrop-blur-md">
       <div className="mx-auto flex h-16 max-w-6xl flex-wrap items-center justify-between gap-3 px-4 sm:px-6">
@@ -471,7 +483,7 @@ function Header() {
             </p>
           </div>
         </div>
-        <PersonaSwitcher />
+        <PersonaSwitcher value={persona} onChange={onPersonaChange} />
       </div>
     </header>
   );
@@ -1121,9 +1133,11 @@ export default function DashboardPage() {
     approveScaleUp,
   } = useDashboard();
 
+  const [persona, setPersona] = useState("department");
+
   return (
     <div className="flex flex-1 flex-col">
-      <Header />
+      <Header persona={persona} onPersonaChange={setPersona} />
       <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6">
         {/* Intro hero */}
         <div className="mb-8 flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
@@ -1163,7 +1177,7 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        <Tabs defaultValue="department">
+        <Tabs value={persona} onValueChange={setPersona}>
           <TabsList className="mb-6 w-fit bg-muted">
             <TabsTrigger value="department" className="gap-2 px-4">
               <Building2 /> Department
