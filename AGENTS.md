@@ -75,5 +75,14 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - [x] Inject `jspdf` into the Evaluator pane's "Approve Scale-Up" pipeline execution.
 - [x] Output a crisp, dynamically rendered official Government Order text format.
 - [x] Run final schema seeds for Maharashtra Government regional demo presentation.
-- [ ] Push to Production via GitHub on Vercel.
+- [x] Push to Production via GitHub on Vercel.
+
+## 🚀 DEPLOYMENT CONTEXT (added 2026-08-29)
+- **Live URL:** https://sih-prototype-26136.vercel.app/dashboard (verified HTTP 200, serves dashboard)
+- **Vercel team/scope:** `snxhits-projects-502fa58f` (`team_2BlNaAQsAnLE2Ku3j8ZzQvBF`), account `snxhit` (amitdgames@gmail.com). Project name: `sih-prototype-26136`.
+- This is a **brand-new Vercel project** created via CLI. The original `.vercel.app` domain/project lived under a different account and was unreachable (Vercel edge 404 on every path) — it was abandoned.
+- **Vercel CLI deploy (worked):** from repo root run `vercel --prod --yes` (project already linked). Auth: `VERCEL_TOKEN` account token.
+- **Env vars set on Vercel (all envs):** `NEXT_PUBLIC_SUPABASE_URL` + `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` (values in `.env.local`, gitignored). These are required — without them the Supabase URL is not inlined and the app silently runs in "Demo · Mock data" mode.
+- **GitHub repo `Snxhit/SIH-Prototype-26136` is correct** (contains the app at root). CAUTION: the *local* `git` remote inside `sih-prototype-26136` points at the same GitHub URL but the local parent `/Users/snxhit/Projects` is a separate Cargo/`.lm` repo — do NOT push from the parent `Projects` folder; push only from within `sih-prototype-26136`.
+- The dashboard's "Demo · Mock data" text in raw HTML is the pre-hydration shell; the "Live · Supabase" badge + data load client-side in a browser.
 
