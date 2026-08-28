@@ -1,0 +1,1215 @@
+"use client";
+
+import { useState, useCallback, useEffect } from "react";
+import {
+  Building2,
+  Rocket,
+  BadgeCheck,
+  Landmark,
+  IndianRupee,
+  Target,
+  Trophy,
+  Users,
+  ClipboardCheck,
+  CheckCircle2,
+  ShieldCheck,
+  TrendingUp,
+  ArrowRight,
+  Plus,
+  FileText,
+  Handshake,
+  Wallet,
+} from "lucide-react";
+
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+
+import { createSupabaseClient, type Database } from "@/utils/supabase/client";
+import type { SupabaseClient } from "@supabase/supabase-js";
+
+import { downloadGovernmentOrder } from "@/utils/government-order";
+
+interface Challenge {
+  id: string;
+  title: string;
+  department_name: string;
+  description: string;
+  target_metrics: string;
+  budget_allocation: number;
+  created_at: string;
+}
+
+type PilotStatus = "active" | "completed" | "scaled_up";
+
+interface Pilot {
+  id: string;
+  challenge_id: string | null;
+  startup_id: string | null;
+  startup_name: string;
+  status: PilotStatus;
+  current_milestone: number;
+  total_milestones: number;
+}
+
+const currency = (value: number) =>
+  new Intl.NumberFormat("en-IN", {
+    style: "currency",
+    currency: "INR",
+    maximumFractionDigits: 0,
+  }).format(value);
+
+const initials = (name: string) =>
+  name
+    .split(" ")
+    .map((word) => word[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+
+const STATUS_LABEL: Record<PilotStatus, string> = {
+  active: "Active Pilot",
+  completed: "Completed",
+  scaled_up: "Scale-Up Approved",
+};
+
+const MOCK_CHALLENGES: Challenge[] = [
+  {
+    id: "c1",
+    title: "AI-Driven Land Record Dispute Prediction",
+    department_name: "Revenue & Land Records",
+    description:
+      "Automate detection of latent disputes in digitised land records and flag high-risk parcels before they escalate into litigation.",
+    target_metrics: "95% dispute identification rate",
+    budget_allocation: 25000000,
+    created_at: "2026-07-03",
+  },
+  {
+    id: "c2",
+    title: "Smart Public Grievance Triage",
+    department_name: "Urban Development",
+    description:
+      "Classify and route citizen grievances to the correct civic department with recommended response actions in real time.",
+    target_metrics: "40% reduction in resolution turnaround",
+    budget_allocation: 18500000,
+    created_at: "2026-07-11",
+  },
+  {
+    id: "c3",
+    title: "Crop Price Forecast & Procurement Optimisation",
+    department_name: "Agricultural Marketing",
+    description:
+      "Forecast mandi prices using market, weather and export signals to guide procurement scheduling and MSP planning.",
+    target_metrics: "88% forecast accuracy over 45 days",
+    budget_allocation: 32000000,
+    created_at: "2026-07-18",
+  },
+];
+
+const MOCK_PILOTS: Pilot[] = [
+  {
+    id: "p1",
+    challenge_id: "c1",
+    startup_id: "s1",
+    startup_name: "AgriSense Analytics",
+    status: "active",
+    current_milestone: 2,
+    total_milestones: 3,
+  },
+  {
+    id: "p2",
+    challenge_id: "c2",
+    startup_id: "s2",
+    startup_name: "CivicFlow Labs",
+    status: "active",
+    current_milestone: 1,
+    total_milestones: 3,
+  },
+  {
+    id: "p3",
+    challenge_id: "c3",
+    startup_id: "s3",
+    startup_name: "Mandibazaar AI",
+    status: "active",
+    current_milestone: 3,
+    total_milestones: 3,
+  },
+];
+
+type DbPilot = Database["public"]["Tables"]["pilots"]["Row"];
+
+/** The single demo startup identity shown across the UI. The `pilots.startup_id`
+ *  column is a FK to `profiles.id` -> `auth.users`, which has no rows without an
+ *  auth flow, so DB rows keep `startup_id = null` and we render this local name. */
+const DEMO_STARTUP_NAME = "Startup One";
+
+function mapDbPilot(row: DbPilot): Pilot {
+  return {
+    id: row.id,
+    challenge_id: row.challenge_id,
+    startup_id: row.startup_id,
+    startup_name: DEMO_STARTUP_NAME,
+    status: row.status,
+    current_milestone: row.current_milestone,
+    total_milestones: row.total_milestones,
+  };
+}
+
+function useDashboard() {
+  const [challenges, setChallenges] = useState<Challenge[]>(MOCK_CHALLENGES);
+  const [pilots, setPilots] = useState<Pilot[]>(MOCK_PILOTS);
+  const [isLive, setIsLive] = useState(false);
+  const [toast, setToast] = useState<string | null>(null);
+
+  const notify = useCallback((message: string) => {
+    setToast(message);
+    window.setTimeout(() => setToast(null), 3200);
+  }, []);
+
+  const harness = useCallback((): SupabaseClient<Database> | null => {
+    try {
+      return createSupabaseClient();
+    } catch {
+      return null;
+    }
+  }, []);
+
+  const reloadChallenges = useCallback(
+    async (client: SupabaseClient<Database>) => {
+      const { data, error } = await client
+        .from("challenges")
+        .select("*")
+        .order("created_at", { ascending: false });
+      if (!error && data) setChallenges(data as Challenge[]);
+    },
+    []
+  );
+
+  const reloadPilots = useCallback(
+    async (client: SupabaseClient<Database>) => {
+      const { data, error } = await client
+        .from("pilots")
+        .select("*")
+        .order("created_at", { ascending: false });
+      if (!error && data) setPilots((data as DbPilot[]).map(mapDbPilot));
+    },
+    []
+  );
+
+  useEffect(() => {
+    const client = harness();
+    if (!client) return;
+    let cancelled = false;
+
+    const load = async () => {
+      const [chRes, piRes] = await Promise.all([
+        client.from("challenges").select("*").order("created_at", { ascending: false }),
+        client.from("pilots").select("*").order("created_at", { ascending: false }),
+      ]);
+      if (cancelled) return;
+      if (!chRes.error && chRes.data) setChallenges(chRes.data as Challenge[]);
+      if (!piRes.error && piRes.data) setPilots((piRes.data as DbPilot[]).map(mapDbPilot));
+      setIsLive(true);
+    };
+
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, [harness]);
+
+  // Auto-refresh listeners: push updates as they land so all views stay in sync.
+  useEffect(() => {
+    const client = harness();
+    if (!client) return;
+
+    const channel = client
+      .channel("dashboard-sync")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "pilots" },
+        () => {
+          reloadPilots(client);
+        }
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "challenges" },
+        () => {
+          reloadChallenges(client);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      client.removeChannel(channel);
+    };
+  }, [harness, reloadPilots, reloadChallenges]);
+
+  // Polling fallback guarantees cross-view sync even if Realtime isn't enabled.
+  useEffect(() => {
+    const client = harness();
+    if (!client || !isLive) return;
+    const id = window.setInterval(async () => {
+      await reloadPilots(client);
+      await reloadChallenges(client);
+    }, 6000);
+    return () => window.clearInterval(id);
+  }, [harness, isLive, reloadPilots, reloadChallenges]);
+
+  const publishChallenge = async (form: Omit<Challenge, "id" | "created_at">) => {
+    const client = harness();
+    if (client && isLive) {
+      const { error } = await client.from("challenges").insert({
+        title: form.title,
+        department_name: form.department_name,
+        description: form.description,
+        target_metrics: form.target_metrics,
+        budget_allocation: form.budget_allocation,
+      });
+      if (error) {
+        notify(`Could not publish challenge: ${error.message}`);
+        return;
+      }
+      await reloadChallenges(client);
+      notify("Challenge published and now live for startups.");
+      return;
+    }
+    const challenge: Challenge = {
+      ...form,
+      id: `c${Date.now()}`,
+      created_at: new Date().toISOString().slice(0, 10),
+    };
+    setChallenges((prev) => [challenge, ...prev]);
+    notify("Challenge published and now live for startups.");
+  };
+
+  const applyToChallenge = async (challengeId: string) => {
+    const client = harness();
+    if (client && isLive) {
+      const { error } = await client.from("pilots").insert({ challenge_id: challengeId });
+      if (error) {
+        notify(`Could not submit application: ${error.message}`);
+        return;
+      }
+      await reloadPilots(client);
+      notify("Application submitted. Your pilot workspace is now active.");
+      return;
+    }
+    setPilots((prev) => [
+      ...prev,
+      {
+        id: `p${Date.now()}`,
+        challenge_id: challengeId,
+        startup_id: null,
+        startup_name: DEMO_STARTUP_NAME,
+        status: "active",
+        current_milestone: 1,
+        total_milestones: 3,
+      },
+    ]);
+    notify("Application submitted. Your pilot workspace is now active.");
+  };
+
+  const advanceMilestone = async (pilotId: string) => {
+    const pilot = pilots.find((p) => p.id === pilotId);
+    if (!pilot || pilot.status !== "active") return;
+
+    const next = pilot.current_milestone + 1;
+    const status: PilotStatus =
+      next > pilot.total_milestones ? "completed" : pilot.status;
+    const milestone = Math.min(next, pilot.total_milestones);
+
+    const client = harness();
+    if (client && isLive) {
+      const { error } = await client
+        .from("pilots")
+        .update({ current_milestone: milestone, status })
+        .eq("id", pilotId);
+      if (error) {
+        notify(`Could not save milestone: ${error.message}`);
+        return;
+      }
+      await reloadPilots(client);
+      notify(
+        status === "completed"
+          ? "Pilot complete. Now pending scale-up review."
+          : "Milestone submitted. Progress updated across all views."
+      );
+      return;
+    }
+
+    setPilots((prev) =>
+      prev.map((p) =>
+        p.id === pilotId ? { ...p, current_milestone: milestone, status } : p
+      )
+    );
+    notify(
+      status === "completed"
+        ? "Pilot complete. Now pending scale-up review."
+        : "Milestone submitted. Progress updated across all views."
+    );
+  };
+
+  const issueOrder = (pilot: Pilot) => {
+    const challenge = challenges.find((c) => c.id === pilot.challenge_id);
+    const year = new Date().getFullYear();
+    const orderNumber = `MAH/PROC/E/${year}/${Date.now()
+      .toString()
+      .slice(-5)}`;
+    const issueDate = new Date().toLocaleDateString("en-IN", {
+      day: "2-digit",
+      month: "long",
+      year: "numeric",
+    });
+
+    downloadGovernmentOrder({
+      orderNumber,
+      issueDate,
+      title: challenge?.title ?? "Government Challenge",
+      department: challenge?.department_name ?? "Government of Maharashtra",
+      startupName: pilot.startup_name,
+      description: challenge?.description ?? "",
+      targetMetrics: challenge?.target_metrics ?? "As per challenge terms",
+      budgetAllocation: challenge?.budget_allocation ?? 0,
+      currentMilestone: pilot.current_milestone,
+      totalMilestones: pilot.total_milestones,
+    });
+  };
+
+  const approveScaleUp = async (pilotId: string) => {
+    const approved = pilots.find(
+      (p) => p.id === pilotId && p.status === "completed"
+    );
+
+    const client = harness();
+    if (client && isLive) {
+      const { error } = await client
+        .from("pilots")
+        .update({ status: "scaled_up" })
+        .eq("id", pilotId)
+        .eq("status", "completed");
+      if (error) {
+        notify(`Could not approve scale-up: ${error.message}`);
+        return;
+      }
+      await reloadPilots(client);
+      if (approved) issueOrder(approved);
+      notify("Scale-up approved. Government Order generated.");
+      return;
+    }
+
+    setPilots((prev) =>
+      prev.map((p) =>
+        p.id === pilotId && p.status === "completed"
+          ? { ...p, status: "scaled_up" }
+          : p
+      )
+    );
+    if (approved) issueOrder(approved);
+    notify("Scale-up approved. Government Order generated.");
+  };
+
+  return {
+    challenges,
+    pilots,
+    isLive,
+    toast,
+    notify,
+    publishChallenge,
+    applyToChallenge,
+    advanceMilestone,
+    approveScaleUp,
+  };
+}
+
+/* ------------------------------------------------------------------ */
+/* Persona Header Bar                                                   */
+/* ------------------------------------------------------------------ */
+
+function PersonaSwitcher() {
+  return (
+    <div className="flex items-center gap-3 rounded-xl border border-border bg-muted/40 p-1">
+      <span className="hidden pl-2 pr-1 text-xs font-medium text-muted-foreground sm:block">
+        Demo as
+      </span>
+      <Tabs defaultValue="department">
+        <TabsList variant="line" className="h-9">
+          <TabsTrigger value="department" className="gap-2 px-3">
+            <Building2 /> Department
+          </TabsTrigger>
+          <TabsTrigger value="startup" className="gap-2 px-3">
+            <Rocket /> Startup
+          </TabsTrigger>
+          <TabsTrigger value="evaluator" className="gap-2 px-3">
+            <ShieldCheck /> Evaluator
+          </TabsTrigger>
+        </TabsList>
+      </Tabs>
+    </div>
+  );
+}
+
+function Header() {
+  return (
+    <header className="sticky top-0 z-30 border-b border-border bg-background/80 backdrop-blur-md">
+      <div className="mx-auto flex h-16 max-w-6xl flex-wrap items-center justify-between gap-3 px-4 sm:px-6">
+        <div className="flex items-center gap-3">
+          <div className="flex size-9 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+            <Landmark className="size-5" />
+          </div>
+          <div className="leading-tight">
+            <p className="text-sm font-semibold">
+              Startup Procurement Portal
+            </p>
+            <p className="text-xs text-muted-foreground">
+              Government of Maharashtra
+            </p>
+          </div>
+        </div>
+        <PersonaSwitcher />
+      </div>
+    </header>
+  );
+}
+
+function DpiitBadge() {
+  return (
+    <div className="flex items-center gap-2 rounded-lg border border-emerald-600/30 bg-emerald-50 px-3 py-2 text-xs font-medium text-emerald-800 dark:bg-emerald-500/10 dark:text-emerald-300">
+      <BadgeCheck className="size-4 shrink-0" />
+      <span>
+        <span className="font-semibold">DPIIT Registered:</span> Turnover &
+        Experience Requirements Waived
+      </span>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Section heading helper                                               */
+/* ------------------------------------------------------------------ */
+
+function SectionHeading({
+  icon: Icon,
+  title,
+  description,
+  action,
+}: {
+  icon: React.ElementType;
+  title: string;
+  description: string;
+  action?: React.ReactNode;
+}) {
+  return (
+    <div className="flex flex-wrap items-end justify-between gap-3">
+      <div className="flex items-start gap-3">
+        <div className="mt-0.5 flex size-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
+          <Icon className="size-4.5" />
+        </div>
+        <div>
+          <h2 className="text-lg font-semibold tracking-tight">{title}</h2>
+          <p className="text-sm text-muted-foreground">{description}</p>
+        </div>
+      </div>
+      {action}
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Department Panel                                                     */
+/* ------------------------------------------------------------------ */
+
+function OutcomeForm({
+  onSubmit,
+}: {
+  onSubmit: (form: Omit<Challenge, "id" | "created_at">) => void;
+}) {
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [targetMetrics, setTargetMetrics] = useState("");
+  const [budget, setBudget] = useState("");
+  const [department, setDepartment] = useState("");
+  const [error, setError] = useState("");
+
+  const handleSubmit = (event: React.FormEvent) => {
+    event.preventDefault();
+    const budgetValue = Number(budget);
+    if (!title || !description || !targetMetrics || !department) {
+      setError("Please complete all fields.");
+      return;
+    }
+    if (!budgetValue || budgetValue <= 0) {
+      setError("Enter a valid budget amount.");
+      return;
+    }
+    onSubmit({
+      title,
+      description,
+      target_metrics: targetMetrics,
+      budget_allocation: budgetValue,
+      department_name: department,
+    });
+    setTitle("");
+    setDescription("");
+    setTargetMetrics("");
+    setBudget("");
+    setDepartment("");
+    setError("");
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2 text-base">
+          <FileText className="size-4" /> Publish Outcome-Based Challenge
+        </CardTitle>
+        <CardDescription>
+          Frame the problem around measurable outcomes, not prescribed
+          solutions.
+        </CardDescription>
+      </CardHeader>
+      <form onSubmit={handleSubmit}>
+        <CardContent className="space-y-5">
+          <div className="grid gap-5 sm:grid-cols-2">
+            <div className="space-y-1.5 sm:col-span-2">
+              <Label htmlFor="title">Challenge Title</Label>
+              <Input
+                id="title"
+                value={title}
+                onChange={(event) => setTitle(event.target.value)}
+                placeholder="e.g. AI-Driven Land Record Dispute Prediction"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="department">Department</Label>
+              <Input
+                id="department"
+                value={department}
+                onChange={(event) => setDepartment(event.target.value)}
+                placeholder="e.g. Revenue & Land Records"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="budget">Budget Allocation</Label>
+              <div className="relative">
+                <IndianRupee className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  id="budget"
+                  type="number"
+                  min={1}
+                  value={budget}
+                  onChange={(event) => setBudget(event.target.value)}
+                  className="pl-8"
+                  placeholder="25000000"
+                />
+              </div>
+            </div>
+            <div className="space-y-1.5 sm:col-span-2">
+              <Label htmlFor="metrics">Target Metrics</Label>
+              <Input
+                id="metrics"
+                value={targetMetrics}
+                onChange={(event) => setTargetMetrics(event.target.value)}
+                placeholder="e.g. Achieve 95% identification rate"
+              />
+            </div>
+            <div className="space-y-1.5 sm:col-span-2">
+              <Label htmlFor="desc">Description</Label>
+              <Textarea
+                id="desc"
+                value={description}
+                onChange={(event) => setDescription(event.target.value)}
+                rows={3}
+                placeholder="Describe the problem statement in measurable, outcome-oriented terms…"
+              />
+            </div>
+          </div>
+          {error && (
+            <p className="text-sm font-medium text-destructive">{error}</p>
+          )}
+        </CardContent>
+        <CardFooter className="justify-end gap-2">
+          <Button type="submit" className="gap-2">
+            <Plus /> Publish Challenge
+          </Button>
+        </CardFooter>
+      </form>
+    </Card>
+  );
+}
+
+function PublishedChallengesTable({
+  challenges,
+}: {
+  challenges: Challenge[];
+}) {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2 text-base">
+          <ClipboardCheck className="size-4" /> Published Challenges
+        </CardTitle>
+        <CardDescription>
+          {challenges.length} problem statement{challenges.length === 1 ? "" : "s"} open to startups.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="overflow-x-auto">
+        <table className="w-full text-left text-sm">
+          <thead>
+            <tr className="border-b border-border text-xs uppercase tracking-wide text-muted-foreground">
+              <th className="pb-3 pr-4 font-medium">Title</th>
+              <th className="pb-3 pr-4 font-medium">Department</th>
+              <th className="pb-3 pr-4 font-medium">Target Metric</th>
+              <th className="pb-3 pr-4 font-medium">Budget</th>
+              <th className="pb-3 font-medium">Published</th>
+            </tr>
+          </thead>
+          <tbody>
+            {challenges.map((challenge) => (
+              <tr
+                key={challenge.id}
+                className="border-b border-border/60 last:border-0"
+              >
+                <td className="py-3 pr-4 font-medium">{challenge.title}</td>
+                <td className="py-3 pr-4 text-muted-foreground">
+                  {challenge.department_name}
+                </td>
+                <td className="py-3 pr-4 text-muted-foreground">
+                  {challenge.target_metrics}
+                </td>
+                <td className="py-3 pr-4 whitespace-nowrap">
+                  {currency(challenge.budget_allocation)}
+                </td>
+                <td className="py-3 text-muted-foreground">
+                  {challenge.created_at}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </CardContent>
+    </Card>
+  );
+}
+
+function DepartmentPanel({
+  challenges,
+  onSubmit,
+}: {
+  challenges: Challenge[];
+  onSubmit: (form: Omit<Challenge, "id" | "created_at">) => void;
+}) {
+  return (
+    <div className="space-y-6">
+      <SectionHeading
+        icon={Landmark}
+        title="Government Department Panel"
+        description="Author problem statements, set budgets and manage an open call for solutions."
+      />
+      <OutcomeForm onSubmit={onSubmit} />
+      <PublishedChallengesTable challenges={challenges} />
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Startup Hub                                                         */
+/* ------------------------------------------------------------------ */
+
+function ChallengeCard({
+  challenge,
+  isApplied,
+  onApply,
+}: {
+  challenge: Challenge;
+  isApplied: boolean;
+  onApply: () => void;
+}) {
+  return (
+    <Card>
+      <CardHeader>
+        <div className="flex items-center justify-between gap-2">
+          <Badge variant="secondary">{challenge.department_name}</Badge>
+          <span className="text-xs text-muted-foreground">
+            Published {challenge.created_at}
+          </span>
+        </div>
+        <CardTitle className="mt-1 text-base">{challenge.title}</CardTitle>
+        <CardDescription>{challenge.description}</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="flex items-center gap-2 rounded-lg bg-muted/60 px-3 py-2 text-sm">
+          <Target className="size-4 shrink-0 text-primary" />
+          <span className="text-muted-foreground">Target: </span>
+          <span className="font-medium">{challenge.target_metrics}</span>
+        </div>
+        <div className="flex items-center gap-2 text-sm">
+          <Wallet className="size-4 shrink-0 text-muted-foreground" />
+          <span className="text-muted-foreground">Budget: </span>
+          <span className="font-semibold">{currency(challenge.budget_allocation)}</span>
+        </div>
+      </CardContent>
+      <CardFooter>
+        <Button
+          className="w-full gap-2"
+          variant={isApplied ? "secondary" : "default"}
+          disabled={isApplied}
+          onClick={onApply}
+        >
+          {isApplied ? (
+            <>
+              <CheckCircle2 /> Applied
+            </>
+          ) : (
+            <>
+              <Handshake /> One-Click Apply
+            </>
+          )}
+        </Button>
+      </CardFooter>
+    </Card>
+  );
+}
+
+function PipelineTimeline({ pilot }: { pilot: Pilot }) {
+  const steps = ["Discover & Apply", "Proof of Concept", "Pilot Rollout", "Go / No-Go Review"];
+  const activeIndex = pilot.current_milestone - 1;
+  return (
+    <Card>
+      <CardContent className="space-y-4">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <span className="font-medium">{pilot.startup_name}</span>
+            <Badge
+              variant="outline"
+              className="border-emerald-600/30 text-emerald-700 dark:text-emerald-300"
+            >
+              Milestone {pilot.current_milestone} of {pilot.total_milestones + 1}
+            </Badge>
+          </div>
+          <Badge
+            variant={pilot.status === "scaled_up" ? "default" : "outline"}
+            className={
+              pilot.status === "scaled_up"
+                ? "bg-emerald-600 text-white hover:bg-emerald-600"
+                : undefined
+            }
+          >
+            {STATUS_LABEL[pilot.status]}
+          </Badge>
+        </div>
+
+        <ol className="grid gap-2 sm:grid-cols-4">
+          {steps.map((step, index) => {
+            const isReached = index <= activeIndex;
+            const isCurrent = index === activeIndex && pilot.status === "active";
+            return (
+              <li key={step} className="relative">
+                <div className="flex flex-col gap-1.5">
+                  <div className="flex items-center gap-2">
+                    <div
+                      className={`flex size-6 items-center justify-center rounded-full border text-xs font-semibold ${
+                        isReached
+                          ? "border-emerald-600 bg-emerald-600 text-white"
+                          : "border-border bg-muted text-muted-foreground"
+                      }`}
+                    >
+                      {isReached ? <CheckCircle2 className="size-3.5" /> : index + 1}
+                    </div>
+                    {index < steps.length - 1 && (
+                      <div
+                        className={`h-0.5 flex-1 rounded ${
+                          index < activeIndex && pilot.status === "active"
+                            ? "bg-emerald-600"
+                            : "bg-border"
+                        }`}
+                      />
+                    )}
+                  </div>
+                  <p
+                    className={`pr-1 text-xs ${
+                      isCurrent
+                        ? "font-semibold text-foreground"
+                        : isReached
+                          ? "text-foreground"
+                          : "text-muted-foreground"
+                    }`}
+                  >
+                    {step}
+                  </p>
+                </div>
+              </li>
+            );
+          })}
+        </ol>
+      </CardContent>
+    </Card>
+  );
+}
+
+function StartupHub({
+  challenges,
+  pilots,
+  onApply,
+  onAdvance,
+}: {
+  challenges: Challenge[];
+  pilots: Pilot[];
+  onApply: (challengeId: string) => void;
+  onAdvance: (pilotId: string) => void;
+}) {
+  const appliedIds = new Set(pilots.map((pilot) => pilot.challenge_id));
+  const activePilots = pilots.filter(
+    (pilot) => pilot.status === "active" || pilot.status === "completed"
+  );
+
+  return (
+    <div className="space-y-6">
+      <SectionHeading
+        icon={Rocket}
+        title="Startup Hub Workspace"
+        description="Browse live challenges and manage your active pilots."
+        action={<DpiitBadge />}
+      />
+      <div>
+        <h3 className="mb-3 text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+          Open Challenges
+        </h3>
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {challenges.map((challenge) => (
+            <ChallengeCard
+              key={challenge.id}
+              challenge={challenge}
+              isApplied={appliedIds.has(challenge.id)}
+              onApply={() => onApply(challenge.id)}
+            />
+          ))}
+        </div>
+      </div>
+      <div>
+        <h3 className="mb-3 text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+          My Active Pilots
+        </h3>
+        {activePilots.length === 0 ? (
+          <Card>
+            <CardContent className="flex flex-col items-center gap-2 py-10 text-center">
+              <Rocket className="size-8 text-muted-foreground/50" />
+              <p className="text-sm font-medium">No active pilots yet</p>
+              <p className="text-sm text-muted-foreground">
+                Apply to a challenge to start your first pilot.
+              </p>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="space-y-4">
+            {activePilots.map((pilot) => (
+              <div key={pilot.id} className="space-y-2">
+                <PipelineTimeline pilot={pilot} />
+                {pilot.status === "active" && (
+                  <div className="flex justify-end">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="gap-2"
+                      onClick={() => onAdvance(pilot.id)}
+                    >
+                      Submit Milestone <ArrowRight />
+                    </Button>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Evaluator Panel                                                      */
+/* ------------------------------------------------------------------ */
+
+function PhaseMatrix({ pilot }: { pilot: Pilot }) {
+  const week = Math.max(0, (pilot.current_milestone - 1) * 2);
+  const coverage =
+    pilot.status === "scaled_up"
+      ? 100
+      : Math.min(96, 40 + pilot.current_milestone * 16);
+  return (
+    <div className="grid grid-cols-3 gap-4">
+      {[
+        { label: "Milestone", value: `${pilot.current_milestone}/${pilot.total_milestones}` },
+        { label: "Week", value: week.toString() },
+        { label: "Coordinate", value: `${pilot.startup_name.split(" ")[0]} Desk` },
+      ].map((item) => (
+        <div key={item.label} className="rounded-lg bg-muted/60 px-3 py-2">
+          <p className="text-[11px] uppercase tracking-wide text-muted-foreground">
+            {item.label}
+          </p>
+          <p className="truncate text-sm font-semibold">{item.value}</p>
+        </div>
+      ))}
+
+      <div className="col-span-3">
+        <div className="mb-1 flex items-center justify-between text-xs">
+          <span className="text-muted-foreground">Completion coverage</span>
+          <span className="font-medium">{coverage}%</span>
+        </div>
+        <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
+          <div
+            className="h-full rounded-full bg-primary transition-all"
+            style={{ width: `${coverage}%` }}
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function EvaluatorPanel({
+  pilots,
+  onApprove,
+}: {
+  pilots: Pilot[];
+  onApprove: (pilotId: string) => void;
+}) {
+  const active = pilots.filter((pilot) => pilot.status === "active");
+  const ready = pilots.filter((pilot) => pilot.status === "completed");
+  const scaled = pilots.filter((pilot) => pilot.status === "scaled_up");
+
+  return (
+    <div className="space-y-6">
+      <SectionHeading
+        icon={ShieldCheck}
+        title="Technical Evaluator Panel"
+        description="Audit active pilots against their phase metrics and clear scale-up clearance."
+      />
+      <DecimalStats
+        rows={[
+          { label: "Active Pilots", value: active.length, icon: Users },
+          { label: "Ready for Scale-Up", value: ready.length, icon: TrendingUp },
+          { label: "Scale-Ups Approved", value: scaled.length, icon: Trophy },
+        ]}
+      />
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-base">
+            <ClipboardCheck className="size-4" /> Pilot Audit Tracker
+          </CardTitle>
+          <CardDescription>
+            Phase metrics and clearance actions for all startup pilots.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="overflow-x-auto">
+          <table className="w-full whitespace-nowrap text-left text-sm">
+            <thead>
+              <tr className="border-b border-border text-xs uppercase tracking-wide text-muted-foreground">
+                <th className="pb-3 pr-4 font-medium">Startup</th>
+                <th className="pb-3 pr-4 font-medium">Phase Metrics</th>
+                <th className="pb-3 pr-4 font-medium">Status</th>
+                <th className="pb-3 pr-4 font-medium">Progress</th>
+                <th className="pb-3 text-right font-medium">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {pilots.map((pilot) => {
+                const isReady = pilot.status === "completed";
+                return (
+                  <tr
+                    key={pilot.id}
+                    className="border-b border-border/60 last:border-0"
+                  >
+                    <td className="py-4 pr-4">
+                      <div className="flex items-center gap-3">
+                        <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
+                          {initials(pilot.startup_name)}
+                        </div>
+                        <span className="font-medium">{pilot.startup_name}</span>
+                      </div>
+                    </td>
+                    <td className="py-4 pr-4">
+                      <PhaseMatrix pilot={pilot} />
+                    </td>
+                    <td className="py-4 pr-4">
+                      <Badge
+                        variant="outline"
+                        className={
+                          pilot.status === "scaled_up"
+                            ? "border-emerald-600/30 text-emerald-700 dark:text-emerald-300"
+                            : undefined
+                        }
+                      >
+                        {STATUS_LABEL[pilot.status]}
+                      </Badge>
+                    </td>
+                    <td className="py-4 pr-4 text-muted-foreground">
+                      {pilot.current_milestone}/{pilot.total_milestones} milestones
+                    </td>
+                    <td className="py-4 text-right">
+                      {isReady ? (
+                        <Button
+                          size="sm"
+                          className="gap-2"
+                          onClick={() => onApprove(pilot.id)}
+                        >
+                          <ShieldCheck /> Verify & Approve Scale-Up
+                        </Button>
+                      ) : pilot.status === "scaled_up" ? (
+                        <span className="inline-flex items-center gap-1.5 text-sm font-medium text-emerald-600">
+                          <CheckCircle2 className="size-4" /> Approved
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1.5 text-sm text-muted-foreground">
+                          <TrendingUp className="size-4" /> In Evaluation
+                        </span>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+function DecimalStats({
+  rows,
+}: {
+  rows: { label: string; value: number; icon: React.ElementType }[];
+}) {
+  return (
+    <div className="grid gap-4 sm:grid-cols-3">
+      {rows.map((row) => (
+        <Card key={row.label}>
+          <CardContent className="flex items-center gap-4">
+            <div className="flex size-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
+              <row.icon className="size-5" />
+            </div>
+            <div>
+              <p className="text-2xl font-semibold leading-none">{row.value}</p>
+              <p className="mt-1 text-sm text-muted-foreground">{row.label}</p>
+            </div>
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Page root                                                           */
+/* ------------------------------------------------------------------ */
+
+export default function DashboardPage() {
+  const {
+    challenges,
+    pilots,
+    isLive,
+    toast,
+    publishChallenge,
+    applyToChallenge,
+    advanceMilestone,
+    approveScaleUp,
+  } = useDashboard();
+
+  return (
+    <div className="flex flex-1 flex-col">
+      <Header />
+      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6">
+        {/* Intro hero */}
+        <div className="mb-8 flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+          <div className="max-w-2xl">
+            <Badge variant="secondary" className="mb-3 gap-1.5">
+              <Landmark className="size-3" /> SIH 2026 · Smart Automation
+            </Badge>
+            <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">
+              Public Procurement with a Startup-First Mindset
+            </h1>
+            <p className="mt-2 text-muted-foreground">
+              A unified demo portal spanning government problem-setting, startup
+              piloting and technical evaluation.
+            </p>
+          </div>
+          <div className="flex items-center gap-3 text-sm text-muted-foreground">
+            <span className="inline-flex items-center gap-1.5">
+              <BadgeCheck className="size-4 text-emerald-600" /> DPIIT-backed
+            </span>
+            <span className="inline-flex items-center gap-1.5">
+              <ShieldCheck className="size-4" /> Outcome-based
+            </span>
+            <span
+              className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-medium ${
+                isLive
+                  ? "border-sky-600/30 text-sky-700 dark:text-sky-300"
+                  : "border-amber-600/30 text-amber-700 dark:text-amber-300"
+              }`}
+            >
+              <span
+                className={`size-1.5 rounded-full ${
+                  isLive ? "bg-sky-500" : "bg-amber-500"
+                }`}
+              />
+              {isLive ? "Live · Supabase" : "Demo · Mock data"}
+            </span>
+          </div>
+        </div>
+
+        <Tabs defaultValue="department">
+          <TabsList className="mb-6 w-fit bg-muted">
+            <TabsTrigger value="department" className="gap-2 px-4">
+              <Building2 /> Department
+            </TabsTrigger>
+            <TabsTrigger value="startup" className="gap-2 px-4">
+              <Rocket /> Startup
+            </TabsTrigger>
+            <TabsTrigger value="evaluator" className="gap-2 px-4">
+              <ShieldCheck /> Evaluator
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="department">
+            <DepartmentPanel challenges={challenges} onSubmit={publishChallenge} />
+          </TabsContent>
+          <TabsContent value="startup">
+            <StartupHub
+              challenges={challenges}
+              pilots={pilots}
+              onApply={applyToChallenge}
+              onAdvance={advanceMilestone}
+            />
+          </TabsContent>
+          <TabsContent value="evaluator">
+            <EvaluatorPanel pilots={pilots} onApprove={approveScaleUp} />
+          </TabsContent>
+        </Tabs>
+      </main>
+
+      <footer className="border-t border-border py-6">
+        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-2 px-4 text-sm text-muted-foreground sm:px-6">
+          <p>Smart Automation · Startup-Friendly Public Procurement</p>
+          <p className="inline-flex items-center gap-1.5">
+            <Handshake className="size-4" /> For hackathon judging demo
+          </p>
+        </div>
+      </footer>
+
+      {toast && (
+        <div className="pointer-events-none fixed inset-x-0 bottom-6 z-50 flex justify-center px-4">
+          <div className="flex items-center gap-2.5 rounded-xl border border-emerald-600/30 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-900 shadow-lg dark:bg-emerald-500/10 dark:text-emerald-200">
+            <CheckCircle2 className="size-4 shrink-0 text-emerald-600" />
+            {toast}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
