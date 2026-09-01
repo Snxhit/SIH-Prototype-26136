@@ -22,6 +22,8 @@ import {
   FlaskConical,
   Handshake,
   Wallet,
+  Send,
+  Zap,
 } from "lucide-react";
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
@@ -44,6 +46,7 @@ import type { SandboxConfig } from "@/lib/sandbox";
 import EvalRubricModal from "@/components/evaluator/EvalRubricModal";
 import type { EvaluationScores } from "@/lib/evaluations";
 import { computeWeightedScore, EVALUATION_THRESHOLD } from "@/lib/evaluations";
+import EscrowDrawer, { type EscrowState } from "@/components/escrow/EscrowDrawer";
 
 interface Challenge {
   id: string;
@@ -81,6 +84,13 @@ const currency = (value: number) =>
     maximumFractionDigits: 0,
   }).format(value);
 
+const compactCurrency = (value: number) =>
+  value >= 10000000
+    ? `₹${(value / 10000000).toFixed(1)} Cr`
+    : value >= 100000
+      ? `₹${(value / 100000).toFixed(1)} L`
+      : `₹${value.toLocaleString("en-IN")}`;
+
 const initials = (name: string) =>
   name
     .split(" ")
@@ -94,6 +104,11 @@ const STATUS_LABEL: Record<PilotStatus, string> = {
   completed: "Completed",
   scaled_up: "Scale-Up Approved",
 };
+
+const dippNumber = (id: string) =>
+  `DIPP-${id
+    .split("")
+    .reduce((acc, char) => (acc * 31 + char.charCodeAt(0)) % 900000 + 100000, 7)}`;
 
 const MOCK_CHALLENGES: Challenge[] = [
   {
@@ -210,8 +225,31 @@ const MOCK_EVALUATIONS: DbEvaluation[] = [
   },
 ];
 
+const MOCK_ESCROW: EscrowState = {
+  vault_balance: 19500000,
+  total_disbursed: 25000000,
+  total_allocated: 44500000,
+  transactions: [
+    {
+      id: "tx1",
+      amount: 25000000,
+      tx_hash: "0x1b4c...98e4",
+      status: "disbursed",
+      disbursed_at: "2026-08-19T10:00:00Z",
+    },
+    {
+      id: "tx2",
+      amount: 1250000,
+      tx_hash: "0x6f3a...c21d",
+      status: "pending",
+      disbursed_at: "2026-09-01T08:30:00Z",
+    },
+  ],
+};
+
 type DbPilot = Database["public"]["Tables"]["pilots"]["Row"];
 type DbEvaluation = Database["public"]["Tables"]["evaluations"]["Row"];
+type DbEscrowTransaction = Database["public"]["Tables"]["escrow_transactions"]["Row"];
 
 /** The single demo startup identity shown across the UI. The `pilots.startup_id`
  *  column is a FK to `profiles.id` -> `auth.users`, which has no rows without an
@@ -240,6 +278,8 @@ function useDashboard() {
   const [challenges, setChallenges] = useState<Challenge[]>(MOCK_CHALLENGES);
   const [pilots, setPilots] = useState<Pilot[]>(MOCK_PILOTS);
   const [evaluations, setEvaluations] = useState<DbEvaluation[]>(MOCK_EVALUATIONS);
+  const [escrow, setEscrow] = useState<EscrowState>(MOCK_ESCROW);
+  const [evidenceFeed, setEvidenceFeed] = useState<Record<string, string>>({});
   const [isLive, setIsLive] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
 
@@ -289,21 +329,66 @@ function useDashboard() {
     []
   );
 
+  const reloadEscrow = useCallback(
+    async (client: SupabaseClient<Database>) => {
+      const { data: vault, error: balErr } = await client.rpc(
+        "get_escrow_vault_balance"
+      );
+      if (balErr) return;
+      const { data: transactions, error: txErr } = await client
+        .from("escrow_transactions")
+        .select("*")
+        .order("disbursed_at", { ascending: false });
+      if (txErr) return;
+      const rows = (transactions as DbEscrowTransaction[]) ?? [];
+      const total_disbursed = rows.reduce(
+        (sum, tx) => sum + (tx.status === "disbursed" ? tx.amount : 0),
+        0
+      );
+      setEscrow({
+        vault_balance: vault ?? 0,
+        total_disbursed,
+        total_allocated: (vault ?? 0) + total_disbursed,
+        transactions: rows,
+      });
+    },
+    []
+  );
+
   useEffect(() => {
     const client = harness();
     if (!client) return;
     let cancelled = false;
 
     const load = async () => {
-      const [chRes, piRes, evRes] = await Promise.all([
+      const [chRes, piRes, evRes, escRes, txRes] = await Promise.all([
         client.from("challenges").select("*").order("created_at", { ascending: false }),
         client.from("pilots").select("*").order("created_at", { ascending: false }),
         client.from("evaluations").select("*").order("created_at", { ascending: false }),
+        client.rpc("get_escrow_vault_balance"),
+        client
+          .from("escrow_transactions")
+          .select("*")
+          .order("disbursed_at", { ascending: false }),
       ]);
       if (cancelled) return;
       if (!chRes.error && chRes.data) setChallenges(chRes.data as Challenge[]);
       if (!piRes.error && piRes.data) setPilots((piRes.data as DbPilot[]).map(mapDbPilot));
       if (!evRes.error && evRes.data) setEvaluations(evRes.data as DbEvaluation[]);
+      if (!escRes.error) {
+        const vault = escRes.data ?? 0;
+        const rows = (txRes.data as DbEscrowTransaction[]) ?? [];
+        const total_disbursed = rows.reduce(
+          (sum, tx) => sum + (tx.status === "disbursed" ? tx.amount : 0),
+          0
+        );
+        setEscrow({
+          vault_balance: vault,
+          total_disbursed,
+          total_allocated: vault + total_disbursed,
+          transactions: rows,
+        });
+      }
       setIsLive(true);
     };
 
@@ -341,12 +426,19 @@ function useDashboard() {
           reloadEvaluations(client);
         }
       )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "escrow_transactions" },
+        () => {
+          reloadEscrow(client);
+        }
+      )
       .subscribe();
 
     return () => {
       client.removeChannel(channel);
     };
-  }, [harness, reloadPilots, reloadChallenges, reloadEvaluations]);
+  }, [harness, reloadPilots, reloadChallenges, reloadEvaluations, reloadEscrow]);
 
   // Polling fallback guarantees cross-view sync even if Realtime isn't enabled.
   useEffect(() => {
@@ -356,9 +448,10 @@ function useDashboard() {
       await reloadPilots(client);
       await reloadChallenges(client);
       await reloadEvaluations(client);
+      await reloadEscrow(client);
     }, 6000);
     return () => window.clearInterval(id);
-  }, [harness, isLive, reloadPilots, reloadChallenges, reloadEvaluations]);
+  }, [harness, isLive, reloadPilots, reloadChallenges, reloadEvaluations, reloadEscrow]);
 
   const publishChallenge = async (form: Omit<Challenge, "id" | "created_at">) => {
     const client = harness();
@@ -590,6 +683,16 @@ function useDashboard() {
     return { approved, weighted_score: weighted };
   };
 
+  const submitMilestoneEvidence = (pilotId: string) => {
+    setEvidenceFeed((prev) => ({
+      ...prev,
+      [pilotId]: new Date().toISOString(),
+    }));
+    notify(
+      "Milestone evidence feed submitted · Technical Evaluator Committee notified via realtime."
+    );
+  };
+
   const lockSandboxConfig = useCallback(
     async (pilotId: string, sandbox: SandboxConfig) => {
       const client = harness();
@@ -634,12 +737,15 @@ function useDashboard() {
     challenges,
     pilots,
     evaluations,
+    escrow,
+    evidenceFeed,
     isLive,
     toast,
     notify,
     publishChallenge,
     applyToChallenge,
     advanceMilestone,
+    submitMilestoneEvidence,
     submitEvaluation,
     lockSandboxConfig,
   };
@@ -687,9 +793,13 @@ function PersonaSwitcher({
 function Header({
   persona,
   onPersonaChange,
+  escrowBalance,
+  onOpenEscrow,
 }: {
   persona: string;
   onPersonaChange: (value: string) => void;
+  escrowBalance: number;
+  onOpenEscrow: () => void;
 }) {
   return (
     <header className="sticky top-0 z-30 border-b border-border bg-background/80 backdrop-blur-md">
@@ -707,7 +817,22 @@ function Header({
             </p>
           </div>
         </div>
-        <PersonaSwitcher value={persona} onChange={onPersonaChange} />
+        <div className="flex items-center gap-3">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="gap-2"
+            onClick={onOpenEscrow}
+          >
+            <Wallet className="size-4 text-emerald-600 dark:text-emerald-400" />
+            <span className="hidden sm:inline text-xs">Escrow Vault</span>
+            <span className="inline-flex items-center gap-1.5 rounded-md border border-emerald-600/30 bg-emerald-50 px-2 py-0.5 font-mono text-xs font-bold text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300">
+              {compactCurrency(escrowBalance)}
+            </span>
+          </Button>
+          <PersonaSwitcher value={persona} onChange={onPersonaChange} />
+        </div>
       </div>
     </header>
   );
@@ -1023,11 +1148,11 @@ function ChallengeCard({
         >
           {isApplied ? (
             <>
-              <CheckCircle2 /> Applied
+              <CheckCircle2 /> Applied · GFR 173(i) Exempted
             </>
           ) : (
             <>
-              <Handshake /> One-Click Apply
+              <Handshake /> One-Click Apply · GFR 173(i)
             </>
           )}
         </Button>
@@ -1043,8 +1168,14 @@ function PipelineTimeline({ pilot }: { pilot: Pilot }) {
     <Card>
       <CardContent className="space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <span className="font-medium">{pilot.startup_name}</span>
+            <Badge
+              variant="outline"
+              className="border-sky-600/30 text-sky-700 dark:text-sky-300"
+            >
+              <BadgeCheck className="size-3" /> DPIIT Verified · {dippNumber(pilot.id)}
+            </Badge>
             <Badge
               variant="outline"
               className="border-emerald-600/30 text-emerald-700 dark:text-emerald-300"
@@ -1115,13 +1246,17 @@ function PipelineTimeline({ pilot }: { pilot: Pilot }) {
 function StartupHub({
   challenges,
   pilots,
+  evidenceFeed,
   onApply,
   onAdvance,
+  onSubmitEvidence,
 }: {
   challenges: Challenge[];
   pilots: Pilot[];
+  evidenceFeed: Record<string, string>;
   onApply: (challengeId: string) => void;
   onAdvance: (pilotId: string) => void;
+  onSubmitEvidence: (pilotId: string) => void;
 }) {
   const appliedIds = new Set(pilots.map((pilot) => pilot.challenge_id));
   const activePilots = pilots.filter(
@@ -1171,7 +1306,24 @@ function StartupHub({
               <div key={pilot.id} className="space-y-2">
                 <PipelineTimeline pilot={pilot} />
                 {pilot.status === "active" && (
-                  <div className="flex justify-end">
+                  <div className="flex flex-wrap justify-end gap-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="gap-2"
+                      disabled={Boolean(evidenceFeed[pilot.id])}
+                      onClick={() => onSubmitEvidence(pilot.id)}
+                    >
+                      {evidenceFeed[pilot.id] ? (
+                        <>
+                          <CheckCircle2 /> Evidence Feed Submitted
+                        </>
+                      ) : (
+                        <>
+                          <Send /> Submit Milestone Evidence Feed
+                        </>
+                      )}
+                    </Button>
                     <Button
                       size="sm"
                       variant="outline"
@@ -1235,10 +1387,12 @@ function PhaseMatrix({ pilot }: { pilot: Pilot }) {
 function EvaluatorPanel({
   pilots,
   evaluations,
+  evidenceFeed,
   onEvaluate,
 }: {
   pilots: Pilot[];
   evaluations: DbEvaluation[];
+  evidenceFeed: Record<string, string>;
   onEvaluate: (pilot: Pilot) => void;
 }) {
   const active = pilots.filter((pilot) => pilot.status === "active");
@@ -1294,7 +1448,15 @@ function EvaluatorPanel({
                         <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
                           {initials(pilot.startup_name)}
                         </div>
-                        <span className="font-medium">{pilot.startup_name}</span>
+                        <div className="leading-tight">
+                          <span className="font-medium">{pilot.startup_name}</span>
+                          {evidenceFeed[pilot.id] && (
+                            <p className="mt-0.5 inline-flex items-center gap-1 text-[11px] text-muted-foreground">
+                              <CheckCircle2 className="size-3 text-emerald-500" />
+                              Milestone evidence feed received
+                            </p>
+                          )}
+                        </div>
                       </div>
                     </td>
                     <td className="py-4 pr-4">
@@ -1400,6 +1562,10 @@ export default function DashboardPage() {
     submitEvaluation,
     lockSandboxConfig,
     evaluations,
+    escrow,
+    evidenceFeed,
+    submitMilestoneEvidence,
+    notify,
   } = useDashboard();
 
   const [persona, setPersona] = useState("department");
@@ -1407,6 +1573,8 @@ export default function DashboardPage() {
     null
   );
   const [evaluatingPilot, setEvaluatingPilot] = useState<Pilot | null>(null);
+  const [escrowOpen, setEscrowOpen] = useState(false);
+  const [demoRunning, setDemoRunning] = useState(false);
 
   const handleUseInChallenge = (prefill: ChallengePrefill) => {
     setChallengePrefill({ ...prefill });
@@ -1416,12 +1584,43 @@ export default function DashboardPage() {
   const handleEvaluationConfirm = async (scores: EvaluationScores) => {
     if (!evaluatingPilot) return;
     const result = await submitEvaluation(evaluatingPilot.id, scores);
-    if (result) setEvaluatingPilot(null);
+    if (!result) return;
+    setEvaluatingPilot(null);
+    if (result.approved) setEscrowOpen(true);
+  };
+
+  const runAutoDemo = async () => {
+    if (demoRunning) return;
+    const target = pilots.find((pilot) => pilot.status !== "scaled_up");
+    if (!target) {
+      notify("Every pilot is scale-up approved — apply to a challenge to re-run the demo.");
+      return;
+    }
+    setDemoRunning(true);
+    setPersona("evaluator");
+    notify(`Auto-demo: Technical Evaluation opened for ${target.startup_name}.`);
+    await new Promise((resolve) => window.setTimeout(resolve, 1400));
+    setEvaluatingPilot(target);
+    await new Promise((resolve) => window.setTimeout(resolve, 2000));
+    setEvaluatingPilot(null);
+    const result = await submitEvaluation(target.id, {
+      technical_merit: 95,
+      kpi_accuracy: 92,
+      cybersecurity: 98,
+      scalability: 88,
+    });
+    if (result?.approved) setEscrowOpen(true);
+    setDemoRunning(false);
   };
 
   return (
     <div className="flex flex-1 flex-col">
-      <Header persona={persona} onPersonaChange={setPersona} />
+      <Header
+        persona={persona}
+        onPersonaChange={setPersona}
+        escrowBalance={escrow.vault_balance}
+        onOpenEscrow={() => setEscrowOpen(true)}
+      />
       <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6">
         {/* Intro hero */}
         <div className="mb-8 flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
@@ -1458,6 +1657,16 @@ export default function DashboardPage() {
               />
               {isLive ? "Live · Supabase" : "Demo · Mock data"}
             </span>
+            <Button
+              type="button"
+              size="sm"
+              className="gap-2"
+              onClick={runAutoDemo}
+              disabled={demoRunning}
+            >
+              <Zap className="size-4" />
+              {demoRunning ? "Running Auto-Demo…" : "Run Auto-Demo"}
+            </Button>
           </div>
         </div>
 
@@ -1491,14 +1700,17 @@ export default function DashboardPage() {
             <StartupHub
               challenges={challenges}
               pilots={pilots}
+              evidenceFeed={evidenceFeed}
               onApply={applyToChallenge}
               onAdvance={advanceMilestone}
+              onSubmitEvidence={submitMilestoneEvidence}
             />
           </TabsContent>
           <TabsContent value="evaluator">
             <EvaluatorPanel
               pilots={pilots}
               evaluations={evaluations}
+              evidenceFeed={evidenceFeed}
               onEvaluate={setEvaluatingPilot}
             />
           </TabsContent>
@@ -1541,6 +1753,12 @@ export default function DashboardPage() {
           onConfirm={handleEvaluationConfirm}
         />
       )}
+
+      <EscrowDrawer
+        open={escrowOpen}
+        onClose={() => setEscrowOpen(false)}
+        escrow={escrow}
+      />
     </div>
   );
 }

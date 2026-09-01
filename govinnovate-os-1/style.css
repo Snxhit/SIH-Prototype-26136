@@ -1,0 +1,186 @@
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Rich Emerald Dark Scrollbar */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+::-webkit-scrollbar-track {
+  background: #0F5132;
+}
+::-webkit-scrollbar-thumb {
+  background: #166534;
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #FF6B35;
+}
+
+/* Emerald Dark Inputs */
+.input-dark {
+  width: 100%;
+  padding: 0.45rem 0.75rem;
+  border-radius: 0.65rem;
+  background-color: #0B3D26;
+  border: 1px solid #166534;
+  color: #FFFFFF;
+  outline: none;
+  font-size: 0.75rem;
+  font-family: inherit;
+  transition: all 0.2s ease;
+}
+
+.input-dark:focus {
+  border-color: #FF6B35;
+  box-shadow: 0 0 0 2px rgba(255, 107, 53, 0.25);
+}
+
+/* Sidebar Vertical Nav Buttons */
+.sidebar-nav-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.65rem 0.85rem;
+  border-radius: 0.75rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: #E2E8F0;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  border: 1px solid transparent;
+  background: transparent;
+  text-align: left;
+}
+
+.sidebar-nav-item:hover {
+  color: #FFFFFF;
+  background-color: #0F5132;
+  border-color: #166534;
+}
+
+.active-sidebar-tab {
+  background-color: #0F5132 !important;
+  color: #FF6B35 !important;
+  border-color: rgba(255, 107, 53, 0.4) !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
+}
+
+/* Primary and Secondary Buttons */
+.btn-primary {
+  padding: 0.5rem 1rem;
+  background: linear-gradient(135deg, #FF6B35, #EA580C);
+  color: #FFFFFF;
+  border-radius: 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  box-shadow: 0 3px 14px rgba(255, 107, 53, 0.35);
+  transition: all 0.2s ease;
+  border: none;
+  cursor: pointer;
+}
+
+.btn-primary:hover {
+  background: linear-gradient(135deg, #EA580C, #FF6B35);
+  transform: translateY(-1px);
+}
+
+.btn-secondary {
+  padding: 0.5rem 1rem;
+  background-color: #0B3D26;
+  color: #FFFFFF;
+  border-radius: 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  border: 1px solid #166534;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.btn-secondary:hover {
+  background-color: #166534;
+  color: #FFFFFF;
+  border-color: #1E7E4A;
+}
+
+.template-card {
+  cursor: pointer;
+  padding: 0.75rem 0.9rem;
+  background-color: #0B3D26;
+  border-radius: 0.85rem;
+  border: 1px solid #166534;
+  transition: all 0.2s ease;
+}
+
+.template-card:hover {
+  border-color: rgba(255, 107, 53, 0.4);
+  transform: translateX(2px);
+}
+
+.active-card {
+  border-color: #FF6B35 !important;
+  background-color: rgba(255, 107, 53, 0.12) !important;
+}
+
+/* Floating Animations for Graphic Badges */
+@keyframes floatSlow {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-8px) rotate(0.5deg); }
+}
+
+@keyframes floatDelayed {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(8px) rotate(-0.5deg); }
+}
+
+@keyframes spinSlow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes reverseSpin {
+  from { transform: rotate(360deg); }
+  to { transform: rotate(0deg); }
+}
+
+.animate-float-slow {
+  animation: floatSlow 5s ease-in-out infinite;
+}
+
+.animate-float-delayed {
+  animation: floatDelayed 6s ease-in-out infinite 1s;
+}
+
+.animate-spin-slow {
+  animation: spinSlow 24s linear infinite;
+}
+
+.animate-reverse-spin {
+  animation: reverseSpin 18s linear infinite;
+}
+
+/* Marquee Animation */
+@keyframes marqueeScroll {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+.marquee-track {
+  display: flex;
+  width: max-content;
+  animation: marqueeScroll 35s linear infinite;
+}

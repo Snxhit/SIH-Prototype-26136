@@ -209,22 +209,22 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 ### 🟨 PHASE 9: ESCROW FINANCIAL LEDGER BACKEND
 **Goal:** Smart escrow vault with automated payout transactions, side drawer, and nav balance.
 
-- [ ] 9.1 Create `app/api/escrow/route.ts` — GET all transactions, GET vault balance (calls `get_escrow_vault_balance()`), POST create payout.
-- [ ] 9.2 Create `components/escrow/EscrowDrawer.tsx` — Side drawer modal: vault balance header, transaction list with hashes and amounts.
-- [ ] 9.3 Add escrow vault balance to header nav bar (next to persona switcher).
-- [ ] 9.4 Wire escrow payout creation into `confirmApproval()` — on approval, insert `escrow_transactions` row with amount = pilot's `tranche_amount`, generate simulated tx_hash.
-- [ ] 9.5 Auto-refresh escrow balance via Supabase Realtime on `escrow_transactions` changes.
+- [x] 9.1 Create `app/api/escrow/route.ts` — GET all transactions, GET vault balance (calls `get_escrow_vault_balance()` RPC), POST create payout.
+- [x] 9.2 Create `components/escrow/EscrowDrawer.tsx` — Side drawer modal: vault balance hero, disbursement coverage bar, transaction list with hashes/amounts/status.
+- [x] 9.3 Add escrow vault balance to header nav bar (next to persona switcher) as an "Escrow Vault" button pill showing `compactCurrency`.
+- [x] 9.4 Wire escrow payout creation into `confirmApproval()` — `submitEvaluation` + the `/api/evaluations` route already insert `escrow_transactions` with amount = pilot's `tranche_amount` + simulated tx_hash exactly once on approval (verified 9.4 in Phase 8).
+- [x] 9.5 Auto-refresh escrow balance via Supabase Realtime on `escrow_transactions` changes (channel + 6s polling fallback).
 
 ### 🟩 PHASE 10: API ROUTES & INTEGRATION
 **Goal:** Final integration pass — connect all frontend panels to new backend, update seeds, verify end-to-end flow.
 
-- [ ] 10.1 Update `supabase/seed.sql` with complete seeds: 6 templates, 2 pilots with sandbox configs, 2 evaluations, 2 escrow transactions.
-- [ ] 10.2 Add GFR 173(i) reference text to 1-Click Apply button state.
-- [ ] 10.3 Add "Submit Milestone Evidence Feed" button that notifies evaluator (writes to evaluations or creates notification).
-- [ ] 10.4 Add DPIIT verification badge with DIPP number display per pilot.
-- [ ] 10.5 Implement Judge Demo auto-simulation (1-click cycles: evaluator → approval → escrow drawer).
-- [ ] 10.6 Run `npm run build` and verify zero errors.
-- [ ] 10.7 Run `npm run lint` and fix any warnings.
+- [x] 10.1 Update `supabase/seed.sql` with complete seeds: 6 templates, 2 pilots with sandbox configs, 2 evaluations, 2 escrow transactions (1 disbursed + 1 pending; vault remains ₹12,50,000).
+- [x] 10.2 Add GFR 173(i) reference text to 1-Click Apply button state ("Applied · GFR 173(i) Exempted" / "One-Click Apply · GFR 173(i)").
+- [x] 10.3 Add "Submit Milestone Evidence Feed" button that notifies evaluator (shared `evidenceFeed` state per pilot, reflected as a "Milestone evidence feed received" chip in the Evaluator panel).
+- [x] 10.4 Add DPIIT verification badge with DIPP number display per pilot (deterministic `DIPP-XXXXX` derived from pilot id, no schema change).
+- [x] 10.5 Implement Judge Demo auto-simulation (1-click cycles: evaluator → rubric modal → auto-approval → GO PDF → escrow drawer opens).
+- [x] 10.6 Run `npm run build` and verify zero errors.
+- [x] 10.7 Run `npm run lint` and fix any warnings.
 - [ ] 10.8 Deploy to Vercel and verify all new features in browser.
 
 ## 🚀 DEPLOYMENT CONTEXT (added 2026-08-29)

@@ -321,6 +321,13 @@ select p.id, 2500000, '0x1b4c...98e4', 'disbursed'
 from public.pilots p join public.challenges c on c.id = p.challenge_id
 where c.title = 'Smart Public Grievance Triage';
 
+insert into public.escrow_transactions (pilot_id, amount, tx_hash, status)
+select p.id, 1250000, '0x9fe9...aa42', 'pending'
+from public.pilots p join public.challenges c on c.id = p.challenge_id
+where c.title = 'AI-Driven Land Record Dispute Prediction';
+
 -- ============================================================================
 -- Done. Verify: select public.get_escrow_vault_balance();  -> 1,250,000
+-- (25,00,000 holds released for the completed Grievance pilot; the 12,50,000
+--  Land Records tranche is 'pending' and still held in the vault.)
 -- ============================================================================

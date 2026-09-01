@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-[#0F5132]">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GovInnovate OS | Public Procurement & Sandbox Gateway</title>
+  <!-- Tailwind CSS & Lucide Icons -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Fonts: Instrument Serif + Plus Jakarta Sans + Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@500;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            emerald: {
+              DEFAULT: '#0F5132',
+              dark: '#0B3D26',
+              light: '#166534',
+              lighter: '#1E7E4A'
+            },
+            crisp: {
+              white: '#FFFFFF',
+              slate: '#F8FAFC',
+              dim: '#E2E8F0'
+            },
+            techOrange: {
+              DEFAULT: '#FF6B35',
+              hover: '#EA580C',
+              light: '#FFA07A'
+            }
+          },
+          fontFamily: {
+            serif: ['"Instrument Serif"', 'Georgia', 'serif'],
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace']
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-[#0F5132] text-[#FFFFFF] font-sans antialiased min-h-full flex flex-col selection:bg-[#FF6B35] selection:text-white">
+
+  <!-- ============================================================
+       LANDING PAGE
+  ============================================================= -->
+  <div id="page-landing" class="min-h-screen bg-[#0F5132] text-[#FFFFFF] relative overflow-x-hidden">
+
+    <!-- NAV -->
+    <nav class="fixed top-0 z-50 w-full bg-[#0B3D26]/95 backdrop-blur-2xl border-b border-[#166534] h-[76px] flex items-center shadow-xl">
+      <div class="max-w-7xl mx-auto px-6 flex items-center justify-between w-full">
+        <div class="flex items-center gap-3.5 cursor-pointer" onclick="showPage('landing')">
+          <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-[#FF6B35] to-[#FFA07A] p-[1.5px] shadow-lg shadow-[#FF6B35]/30">
+            <div class="w-full h-full bg-[#0B3D26] rounded-[14px] flex items-center justify-center">
+              <i data-lucide="sparkles" class="w-5 h-5 text-[#FF6B35]"></i>
+            </div>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="text-2xl font-serif font-bold tracking-normal text-[#FFFFFF]">GovInnovate</span>
+            <span class="text-2xl font-serif font-bold italic bg-gradient-to-r from-[#FF6B35] via-[#FFA07A] to-[#FFFFFF] bg-clip-text text-transparent">OS</span>
+            <span class="ml-1.5 text-[10px] font-mono font-bold px-2.5 py-0.5 rounded-full bg-[#FF6B35]/15 text-[#FF6B35] border border-[#FF6B35]/30">PROTOTYPE</span>
+          </div>
+        </div>
+
+        <div class="hidden md:flex items-center gap-8 text-xs font-bold uppercase tracking-wider text-[#E2E8F0]">
+          <a href="#section-features" class="hover:text-[#FF6B35] transition">Features</a>
+          <a href="#section-how-it-works" class="hover:text-[#FF6B35] transition">How It Works</a>
+          <a href="#section-for-whom" class="hover:text-[#FF6B35] transition">For Government</a>
+          <a href="#section-for-whom" class="hover:text-[#FF6B35] transition">For Startups</a>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <button onclick="showPage('signin')" class="px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider text-[#FFFFFF] hover:bg-[#166534] border border-[#166534] transition">Sign In</button>
+          <button onclick="showPage('dashboard')" class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-[#FF6B35] to-[#EA580C] hover:from-[#EA580C] hover:to-[#FF6B35] text-white text-xs font-bold uppercase tracking-wider shadow-lg shadow-[#FF6B35]/35 hover:shadow-[#FF6B35]/50 hover:-translate-y-0.5 transition">Launch Platform →</button>
+        </div>
+      </div>
+    </nav>
+
+    <!-- HERO SECTION (SPLIT 2-COLUMN LAYOUT) -->
+    <section class="min-h-screen relative overflow-hidden flex items-center pt-28 pb-20">
+      <div class="absolute top-1/4 left-1/3 -translate-x-1/2 w-[850px] h-[450px] bg-radial from-[#FF6B35]/15 via-[#166534]/30 to-transparent rounded-full blur-[140px] pointer-events-none -z-10"></div>
+      
+      <div class="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center relative z-10 w-full">
+        
+        <!-- Left Column: Typography & CTAs -->
+        <div class="lg:col-span-6 space-y-6 text-left">
+          <div class="inline-flex items-center gap-2.5 bg-[#0B3D26]/90 border border-[#166534] rounded-full px-4 py-1.5 shadow-xl backdrop-blur-xl">
+            <span class="w-2.5 h-2.5 rounded-full bg-[#FF6B35] animate-pulse"></span>
+            <span class="text-xs font-mono font-bold text-[#E2E8F0]">Public Procurement & Sandbox Gateway Model</span>
+          </div>
+
+          <div class="space-y-0">
+            <h1 class="text-5xl sm:text-6xl lg:text-7xl font-serif font-normal text-[#FFFFFF] leading-[1.05] tracking-tight">
+              Where Government
+            </h1>
+            <h1 class="text-5xl sm:text-6xl lg:text-7xl font-serif font-normal leading-[1.05] tracking-tight">
+              <em class="italic text-[#E2E8F0]">Meets</em> <em class="italic bg-gradient-to-r from-[#FF6B35] via-[#FFA07A] to-[#FFFFFF] bg-clip-text text-transparent">Innovation.</em>
+            </h1>
+          </div>
+
+          <p class="text-base text-[#E2E8F0] font-medium leading-relaxed max-w-lg">
+            Connecting government departments with DPIIT-recognised startups through controlled sandboxes, milestone-gated escrow, and zero red-tape delays[cite: 1, 2]. GFR 173(i) compliant by design[cite: 1].
+          </p>
+
+          <div class="flex flex-wrap items-center gap-4 pt-1">
+            <button onclick="showPage('dashboard')" class="px-7 py-3.5 rounded-xl bg-gradient-to-r from-[#FF6B35] to-[#EA580C] hover:from-[#EA580C] hover:to-[#FF6B35] text-white font-extrabold text-xs uppercase tracking-wider shadow-xl shadow-[#FF6B35]/40 hover:-translate-y-0.5 transition flex items-center gap-2.5">
+              <span>Launch Platform</span>
+              <i data-lucide="arrow-right" class="w-4 h-4"></i>
+            </button>
+            <button onclick="runLandingDemo()" class="px-6 py-3.5 rounded-xl bg-[#0B3D26] hover:bg-[#166534] border border-[#166534] text-[#FFFFFF] font-bold text-xs uppercase tracking-wider shadow-lg transition flex items-center gap-2">
+              <i data-lucide="play" class="w-4 h-4 text-[#FF6B35]"></i>
+              <span>Simulate Demo</span>
+            </button>
+          </div>
+
+          <!-- 4 Pillars Grid -->
+          <div class="pt-4 grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+            <div class="bg-[#0B3D26]/90 border border-[#166534] rounded-xl p-2.5 text-center">
+              <span class="text-[11px] font-mono font-bold text-[#FF6B35] block">GFR-Informed</span>
+              <span class="text-[9px] font-bold text-[#E2E8F0] uppercase">Procurement</span>
+            </div>
+            <div class="bg-[#0B3D26]/90 border border-[#166534] rounded-xl p-2.5 text-center">
+              <span class="text-[11px] font-mono font-bold text-[#FF6B35] block">CVC-Aligned</span>
+              <span class="text-[9px] font-bold text-[#E2E8F0] uppercase">Transparency</span>
+            </div>
+            <div class="bg-[#0B3D26]/90 border border-[#166534] rounded-xl p-2.5 text-center">
+              <span class="text-[11px] font-mono font-bold text-[#FF6B35] block">DPIIT-Friendly</span>
+              <span class="text-[9px] font-bold text-[#E2E8F0] uppercase">Startup Flow</span>
+            </div>
+            <div class="bg-[#0B3D26]/90 border border-[#166534] rounded-xl p-2.5 text-center">
+              <span class="text-[11px] font-mono font-bold text-[#FF6B35] block">MeitY Cloud</span>
+              <span class="text-[9px] font-bold text-[#E2E8F0] uppercase">Compatible</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Column: Interactive Nodal Graphic with Flow Streams -->
+        <div class="lg:col-span-6 relative flex items-center justify-center pt-8 lg:pt-0">
+          
+          <div class="relative w-full max-w-[480px] aspect-square flex items-center justify-center">
+            
+            <!-- Outer Spinning Orbit 1 -->
+            <div class="absolute inset-0 rounded-full border border-dashed border-[#166534]/70 animate-spin-slow pointer-events-none"></div>
+
+            <!-- Outer Orbit 2 with glowing pulse packet -->
+            <div class="absolute inset-8 rounded-full border border-[#166534] animate-reverse-spin pointer-events-none">
+              <div class="w-3 h-3 rounded-full bg-[#FF6B35] shadow-[0_0_12px_#FF6B35] -top-1.5 left-1/2 -translate-x-1/2 absolute animate-pulse"></div>
+            </div>
+
+            <!-- Middle Orbit -->
+            <div class="absolute inset-20 rounded-full border border-[#FF6B35]/25 animate-spin-slow pointer-events-none">
+              <div class="w-2.5 h-2.5 rounded-full bg-[#FFFFFF] shadow-[0_0_8px_#FFFFFF] top-1/2 -left-1.5 -translate-y-1/2 absolute"></div>
+            </div>
+
+            <!-- Central Core Hub: Smart Escrow & Innovation Engine -->
+            <div class="relative z-10 w-44 h-44 rounded-full bg-gradient-to-br from-[#0B3D26] via-[#0F5132] to-[#166534] border-2 border-[#FF6B35]/40 p-4 shadow-2xl flex flex-col items-center justify-center text-center backdrop-blur-2xl">
+              <div class="w-12 h-12 rounded-2xl bg-[#FF6B35]/20 text-[#FF6B35] flex items-center justify-center mb-1.5 border border-[#FF6B35]/30">
+                <i data-lucide="shield-check" class="w-6 h-6"></i>
+              </div>
+              <span class="text-xs font-black text-[#FFFFFF] tracking-tight">GovInnovate Engine</span>
+              <span class="text-[10px] font-mono text-[#FF6B35] mt-0.5 font-bold">Autonomous Gateway</span>
+            </div>
+
+            <!-- Floating Node 1: Government Authority (Top-Left) -->
+            <div class="absolute top-2 left-2 bg-[#0B3D26]/95 border border-[#166534] rounded-2xl px-4 py-2.5 shadow-2xl flex items-center gap-3 backdrop-blur-xl animate-float-slow z-20">
+              <div class="w-8 h-8 rounded-xl bg-[#FFFFFF]/10 text-[#FFFFFF] flex items-center justify-center font-bold">
+                <i data-lucide="building-2" class="w-4 h-4 text-[#FFFFFF]"></i>
+              </div>
+              <div>
+                <div class="text-[11px] font-bold text-[#FFFFFF]">Gov Department</div>
+                <div class="text-[9px] text-[#E2E8F0]/80">Problem KPI Formulation[cite: 1, 2]</div>
+              </div>
+            </div>
+
+            <!-- Floating Node 2: Smart Escrow Vault (Top-Right) -->
+            <div class="absolute top-6 right-0 bg-[#FFFFFF] text-[#0B3D26] rounded-2xl px-4 py-2.5 shadow-2xl flex items-center gap-3 border border-[#E2E8F0] animate-float-delayed z-20">
+              <div class="w-8 h-8 rounded-xl bg-[#FF6B35]/15 text-[#FF6B35] flex items-center justify-center font-bold">
+                <i data-lucide="wallet" class="w-4 h-4 text-[#FF6B35]"></i>
+              </div>
+              <div>
+                <div class="text-[11px] font-extrabold text-[#0B3D26]">Smart Escrow</div>
+                <div class="text-[10px] text-[#FF6B35] font-mono font-bold">₹4.85 Cr Secured</div>
+              </div>
+            </div>
+
+            <!-- Floating Node 3: DeepTech Startup Sandbox (Bottom-Left) -->
+            <div class="absolute bottom-6 left-0 bg-[#0B3D26]/95 border border-[#FF6B35]/40 rounded-2xl px-4 py-2.5 shadow-2xl flex items-center gap-3 backdrop-blur-xl animate-float-delayed z-20">
+              <div class="w-8 h-8 rounded-xl bg-[#FF6B35]/20 text-[#FF6B35] flex items-center justify-center font-bold">
+                <i data-lucide="rocket" class="w-4 h-4 text-[#FF6B35]"></i>
+              </div>
+              <div>
+                <div class="text-[11px] font-bold text-[#FFFFFF]">DPIIT Startup Hub</div>
+                <div class="text-[9px] text-[#FF6B35]">100% IP Retained[cite: 1, 2]</div>
+              </div>
+            </div>
+
+            <!-- Floating Node 4: GeM Direct Conversion (Bottom-Right) -->
+            <div class="absolute bottom-4 right-2 bg-[#FFFFFF] text-[#0B3D26] rounded-2xl px-4 py-2.5 shadow-2xl flex items-center gap-3 border border-[#E2E8F0] animate-float-slow z-20">
+              <div class="w-8 h-8 rounded-xl bg-[#0F5132]/10 text-[#0F5132] flex items-center justify-center font-bold">
+                <i data-lucide="badge-check" class="w-4 h-4 text-[#0F5132]"></i>
+              </div>
+              <div>
+                <div class="text-[11px] font-extrabold text-[#0B3D26]">GeM Scale-Up</div>
+                <div class="text-[10px] text-[#166534] font-medium">Single-Source Ready[cite: 2]</div>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- LIVE TICKER -->
+    <div class="bg-[#0B3D26] border-y border-[#166534] py-3.5 overflow-hidden relative backdrop-blur-md">
+      <div class="marquee-track font-mono text-xs font-bold tracking-wider text-[#E2E8F0]">
+        <span class="px-6 text-[#FF6B35]">🟠 SIMULATION: ₹2.5Cr Disbursed to AgroVision AI ·</span>
+        <span class="px-6 text-[#FFFFFF]">📡 HydroSense Milestone 2 Telemetry Received ·</span>
+        <span class="px-6 text-[#E2E8F0]">🚀 Challenge Model: Land Encroachment AI (₹48L) ·</span>
+        <span class="px-6 text-[#FF6B35]">✅ GFR-Informed Template Formulation Active ·</span>
+        <span class="px-6 text-[#FFFFFF]">🔒 Sandbox: 5km Urban Zone Parametrized ·</span>
+      </div>
+    </div>
+
+    <!-- STATS -->
+    <section class="py-16 bg-[#0B3D26] border-b border-[#166534]">
+      <div class="max-w-6xl mx-auto px-6 grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+        <div class="p-6 rounded-3xl bg-[#0F5132] border border-[#166534] shadow-xl">
+          <div class="text-3xl sm:text-4xl font-serif text-[#FF6B35] font-bold">₹10 Cr+</div>
+          <div class="text-xs font-bold text-[#FFFFFF] uppercase tracking-wider mt-2">Escrow Managed</div>
+          <div class="text-[11px] text-[#E2E8F0]/70 mt-0.5">Across active test pilots</div>
+        </div>
+        <div class="p-6 rounded-3xl bg-[#0F5132] border border-[#166534] shadow-xl">
+          <div class="text-3xl sm:text-4xl font-serif text-[#FFFFFF] font-bold">6</div>
+          <div class="text-xs font-bold text-[#FFFFFF] uppercase tracking-wider mt-2">Legal Templates</div>
+          <div class="text-[11px] text-[#E2E8F0]/70 mt-0.5">GFR & CVC aligned contracts</div>
+        </div>
+        <div class="p-6 rounded-3xl bg-[#0F5132] border border-[#166534] shadow-xl">
+          <div class="text-3xl sm:text-4xl font-serif text-[#FF6B35] font-bold">48h</div>
+          <div class="text-xs font-bold text-[#FFFFFF] uppercase tracking-wider mt-2">Disbursement SLA</div>
+          <div class="text-[11px] text-[#E2E8F0]/70 mt-0.5">Automated audit release</div>
+        </div>
+        <div class="p-6 rounded-3xl bg-[#0F5132] border border-[#166534] shadow-xl">
+          <div class="text-3xl sm:text-4xl font-serif text-[#FFFFFF] font-bold">100%</div>
+          <div class="text-xs font-bold text-[#FFFFFF] uppercase tracking-wider mt-2">IP Retained</div>
+          <div class="text-[11px] text-[#E2E8F0]/70 mt-0.5">Owned by startups</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FEATURES -->
+    <section id="section-features" class="py-24 bg-[#0F5132]">
+      <div class="max-w-7xl mx-auto px-6">
+        <div class="text-center max-w-2xl mx-auto mb-16">
+          <span class="text-xs font-mono font-bold uppercase tracking-widest text-[#FF6B35] bg-[#FF6B35]/15 px-3.5 py-1 rounded-full border border-[#FF6B35]/30">Architecture</span>
+          <h2 class="text-4xl sm:text-5xl font-serif text-[#FFFFFF] mt-4">Platform Features</h2>
+          <p class="text-sm text-[#E2E8F0] mt-2 font-medium">Six integrated modules covering the complete sandbox and innovation lifecycle.</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div class="bg-[#0B3D26] p-7 rounded-3xl border border-[#166534] hover:border-[#FF6B35]/50 shadow-xl transition space-y-4">
+            <div class="w-12 h-12 rounded-2xl bg-[#FF6B35]/15 border border-[#FF6B35]/30 text-[#FF6B35] flex items-center justify-center">
+              <i data-lucide="file-text" class="w-6 h-6"></i>
+            </div>
+            <h3 class="text-lg font-bold text-[#FFFFFF]">Legal Template Studio</h3>
+            <p class="text-xs text-[#E2E8F0] leading-relaxed">6 standardized GFR-informed contract models with live variable binding and instant Markdown exports[cite: 1, 2].</p>
+          </div>
+
+          <div class="bg-[#0B3D26] p-7 rounded-3xl border border-[#166534] hover:border-[#FF6B35]/50 shadow-xl transition space-y-4">
+            <div class="w-12 h-12 rounded-2xl bg-[#FF6B35]/15 border border-[#FF6B35]/30 text-[#FF6B35] flex items-center justify-center">
+              <i data-lucide="boxes" class="w-6 h-6"></i>
+            </div>
+            <h3 class="text-lg font-bold text-[#FFFFFF]">Controlled Sandbox</h3>
+            <p class="text-xs text-[#E2E8F0] leading-relaxed">Parametrize geographical boundaries, synthetic data pipelines, and error stop-loss limits.</p>
+          </div>
+
+          <div class="bg-[#0B3D26] p-7 rounded-3xl border border-[#166534] hover:border-[#FF6B35]/50 shadow-xl transition space-y-4">
+            <div class="w-12 h-12 rounded-2xl bg-[#FF6B35]/15 border border-[#FF6B35]/30 text-[#FF6B35] flex items-center justify-center">
+              <i data-lucide="award" class="w-6 h-6"></i>
+            </div>
+            <h3 class="text-lg font-bold text-[#FFFFFF]">QCBS Evaluation Matrix</h3>
+            <p class="text-xs text-[#E2E8F0] leading-relaxed">5-pillar scoring framework aligned to CVC guidance for auditable evaluation consensus.</p>
+          </div>
+
+          <div class="bg-[#0B3D26] p-7 rounded-3xl border border-[#166534] hover:border-[#FF6B35]/50 shadow-xl transition space-y-4">
+            <div class="w-12 h-12 rounded-2xl bg-[#FF6B35]/15 border border-[#FF6B35]/30 text-[#FF6B35] flex items-center justify-center">
+              <i data-lucide="building" class="w-6 h-6"></i>
+            </div>
+            <h3 class="text-lg font-bold text-[#FFFFFF]">Department Studio</h3>
+            <p class="text-xs text-[#E2E8F0] leading-relaxed">Formulate problem statements around KPIs instead of restrictive hardware brand requirements.</p>
+          </div>
+
+          <div class="bg-[#0B3D26] p-7 rounded-3xl border border-[#166534] hover:border-[#FF6B35]/50 shadow-xl transition space-y-4">
+            <div class="w-12 h-12 rounded-2xl bg-[#FF6B35]/15 border border-[#FF6B35]/30 text-[#FF6B35] flex items-center justify-center">
+              <i data-lucide="rocket" class="w-6 h-6"></i>
+            </div>
+            <h3 class="text-lg font-bold text-[#FFFFFF]">Startup Hub</h3>
+            <p class="text-xs text-[#E2E8F0] leading-relaxed">One-click fast track applications with GFR Rule 173(i) waivers for turnover and past track record[cite: 1, 2].</p>
+          </div>
+
+          <div class="bg-[#0B3D26] p-7 rounded-3xl border border-[#166534] hover:border-[#FF6B35]/50 shadow-xl transition space-y-4">
+            <div class="w-12 h-12 rounded-2xl bg-[#FF6B35]/15 border border-[#FF6B35]/30 text-[#FF6B35] flex items-center justify-center">
+              <i data-lucide="wallet" class="w-6 h-6"></i>
+            </div>
+            <h3 class="text-lg font-bold text-[#FFFFFF]">Smart Escrow Ledger</h3>
+            <p class="text-xs text-[#E2E8F0] leading-relaxed">Tranche-based automated fund release linked to verified milestone telemetry and audit approvals.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- HOW IT WORKS -->
+    <section id="section-how-it-works" class="py-24 bg-[#0B3D26] border-y border-[#166534]">
+      <div class="max-w-7xl mx-auto px-6">
+        <div class="text-center max-w-2xl mx-auto mb-16">
+          <span class="text-xs font-mono font-bold uppercase tracking-widest text-[#FF6B35] bg-[#FF6B35]/15 px-3.5 py-1 rounded-full border border-[#FF6B35]/30">Workflow</span>
+          <h2 class="text-4xl sm:text-5xl font-serif text-[#FFFFFF] mt-4">How GovInnovate OS Works</h2>
+          <p class="text-sm text-[#E2E8F0] mt-2 font-medium">A 5-step milestone pipeline from challenge formulation to scale-up.</p>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+          <div class="p-6 rounded-3xl bg-[#0F5132] border border-[#166534] text-center space-y-3">
+            <div class="w-9 h-9 rounded-xl bg-[#FF6B35] text-white font-mono font-black text-sm flex items-center justify-center mx-auto shadow-lg shadow-[#FF6B35]/30">1</div>
+            <h4 class="text-sm font-bold text-[#FFFFFF]">Post Challenge</h4>
+            <p class="text-xs text-[#E2E8F0] leading-relaxed">Department formulates problem with outcome KPI and committed escrow balance.</p>
+          </div>
+          <div class="p-6 rounded-3xl bg-[#0F5132] border border-[#166534] text-center space-y-3">
+            <div class="w-9 h-9 rounded-xl bg-[#FF6B35] text-white font-mono font-black text-sm flex items-center justify-center mx-auto shadow-lg shadow-[#FF6B35]/30">2</div>
+            <h4 class="text-sm font-bold text-[#FFFFFF]">Startup Intake</h4>
+            <p class="text-xs text-[#E2E8F0] leading-relaxed">DPIIT startups apply with waiver provisions under GFR Rule 173(i)[cite: 1, 2].</p>
+          </div>
+          <div class="p-6 rounded-3xl bg-[#0F5132] border border-[#166534] text-center space-y-3">
+            <div class="w-9 h-9 rounded-xl bg-[#FF6B35] text-white font-mono font-black text-sm flex items-center justify-center mx-auto shadow-lg shadow-[#FF6B35]/30">3</div>
+            <h4 class="text-sm font-bold text-[#FFFFFF]">Sandbox Trial</h4>
+            <p class="text-xs text-[#E2E8F0] leading-relaxed">Execute in a controlled, risk-isolated testbed using live or synthetic feeds.</p>
+          </div>
+          <div class="p-6 rounded-3xl bg-[#0F5132] border border-[#166534] text-center space-y-3">
+            <div class="w-9 h-9 rounded-xl bg-[#FF6B35] text-white font-mono font-black text-sm flex items-center justify-center mx-auto shadow-lg shadow-[#FF6B35]/30">4</div>
+            <h4 class="text-sm font-bold text-[#FFFFFF]">Audit & Escrow</h4>
+            <p class="text-xs text-[#E2E8F0] leading-relaxed">Committee reviews telemetry, releasing escrow tranches within 48 hours.</p>
+          </div>
+          <div class="p-6 rounded-3xl bg-[#0F5132] border border-[#166534] text-center space-y-3">
+            <div class="w-9 h-9 rounded-xl bg-[#FF6B35] text-white font-mono font-black text-sm flex items-center justify-center mx-auto shadow-lg shadow-[#FF6B35]/30">5</div>
+            <h4 class="text-sm font-bold text-[#FFFFFF]">Scale-Up Ready</h4>
+            <p class="text-xs text-[#E2E8F0] leading-relaxed">Pilots scoring &ge;85% receive direct conversion scale certificates for GeM[cite: 2].</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FOR WHOM -->
+    <section id="section-for-whom" class="py-24 bg-[#0F5132]">
+      <div class="max-w-6xl mx-auto px-6 grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div class="p-8 sm:p-10 rounded-3xl bg-[#0B3D26] border border-[#FF6B35]/30 shadow-2xl flex flex-col justify-between space-y-6">
+          <div>
+            <span class="text-[10px] font-mono font-bold uppercase tracking-widest bg-[#FF6B35]/15 text-[#FF6B35] border border-[#FF6B35]/30 px-3 py-1 rounded-full">For Government</span>
+            <h3 class="text-3xl font-serif text-[#FFFFFF] mt-4 mb-3">Post challenges,<br/>not specifications.</h3>
+            <ul class="space-y-3 text-xs text-[#E2E8F0] mt-4">
+              <li class="flex items-center gap-2.5"><i data-lucide="check-circle-2" class="w-4 h-4 text-[#FF6B35]"></i> Fast-track challenges with attached sandbox boundaries</li>
+              <li class="flex items-center gap-2.5"><i data-lucide="check-circle-2" class="w-4 h-4 text-[#FF6B35]"></i> Full audit compliance aligned with GFR & CVC rules</li>
+              <li class="flex items-center gap-2.5"><i data-lucide="check-circle-2" class="w-4 h-4 text-[#FF6B35]"></i> Real-time telemetry monitoring with stop-loss protection</li>
+            </ul>
+          </div>
+          <button onclick="showPage('dashboard');switchView('department')" class="w-full py-3.5 rounded-xl bg-[#FF6B35] hover:bg-[#EA580C] text-white text-xs font-bold uppercase tracking-wider shadow-lg shadow-[#FF6B35]/30 transition">Post a Problem Statement →</button>
+        </div>
+
+        <div class="p-8 sm:p-10 rounded-3xl bg-[#0B3D26] border border-[#166534] hover:border-[#FF6B35]/30 shadow-2xl flex flex-col justify-between space-y-6 transition">
+          <div>
+            <span class="text-[10px] font-mono font-bold uppercase tracking-widest bg-[#166534] text-[#E2E8F0] border border-[#1E7E4A] px-3 py-1 rounded-full">For DPIIT Startups</span>
+            <h3 class="text-3xl font-serif text-[#FFFFFF] mt-4 mb-3">Compete on merit,<br/>not legacy.</h3>
+            <ul class="space-y-3 text-xs text-[#E2E8F0] mt-4">
+              <li class="flex items-center gap-2.5"><i data-lucide="check-circle-2" class="w-4 h-4 text-[#FF6B35]"></i> GFR 173(i) waiver on past turnover and experience[cite: 1, 2]</li>
+              <li class="flex items-center gap-2.5"><i data-lucide="check-circle-2" class="w-4 h-4 text-[#FF6B35]"></i> 100% IP ownership retained contractually[cite: 1, 2]</li>
+              <li class="flex items-center gap-2.5"><i data-lucide="check-circle-2" class="w-4 h-4 text-[#FF6B35]"></i> 48-hour escrow tranche releases upon milestone validation[cite: 1, 2]</li>
+            </ul>
+          </div>
+          <button onclick="showPage('dashboard');switchView('startup')" class="w-full py-3.5 rounded-xl bg-[#166534] hover:bg-[#1E7E4A] text-[#FFFFFF] text-xs font-bold uppercase tracking-wider shadow-lg transition">Enter Startup Hub →</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="bg-[#0B3D26] border-t border-[#166534] py-12">
+      <div class="max-w-7xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-[#FF6B35] to-[#FFA07A] flex items-center justify-center text-white font-bold">
+            <i data-lucide="sparkles" class="w-4 h-4"></i>
+          </div>
+          <span class="text-base font-serif font-bold text-[#FFFFFF]">GovInnovate OS</span>
+          <span class="text-xs text-[#E2E8F0]/70 font-medium ml-2">Public Procurement & Sandbox Platform Prototype</span>
+        </div>
+        <div class="text-xs font-mono text-[#E2E8F0]/70">
+          Prototype Environment · GFR & CVC Aligned Modern Gov-Tech
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <!-- ============================================================
+       SIGN-IN PAGE
+  ============================================================= -->
+  <div id="page-signin" class="hidden min-h-screen bg-[#0F5132] flex items-center justify-center p-6">
+    <div class="w-full max-w-md bg-[#0B3D26] rounded-3xl border border-[#166534] p-8 shadow-2xl space-y-6 backdrop-blur-2xl">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-3 cursor-pointer" onclick="showPage('landing')">
+          <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-[#FF6B35] to-[#FFA07A] flex items-center justify-center text-white">
+            <i data-lucide="sparkles" class="w-4 h-4"></i>
+          </div>
+          <span class="font-serif font-bold text-[#FFFFFF] text-lg">GovInnovate OS</span>
+        </div>
+        <button onclick="showPage('landing')" class="text-xs font-bold text-[#E2E8F0] hover:text-[#FFFFFF]">← Back</button>
+      </div>
+
+      <div>
+        <h2 id="signin-heading" class="text-3xl font-serif text-[#FFFFFF]">Sign In to Platform</h2>
+        <p id="signin-subheading" class="text-xs text-[#E2E8F0] mt-1">Access the sandbox management system prototype</p>
+      </div>
+
+      <div class="grid grid-cols-2 gap-2 p-1.5 bg-[#0F5132] rounded-2xl border border-[#166534]">
+        <button id="signin-tab-gov" onclick="setSigninRole('government')" class="py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider bg-[#FF6B35]/20 border border-[#FF6B35]/40 text-[#FF6B35]">🏛️ Government</button>
+        <button id="signin-tab-startup" onclick="setSigninRole('startup')" class="py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider text-[#E2E8F0]">🚀 DPIIT Startup</button>
+      </div>
+
+      <form onsubmit="handleSignin(event)" class="space-y-4 text-xs">
+        <div>
+          <label id="signin-email-label" class="block font-bold text-[#FFFFFF] uppercase tracking-wider mb-1">Official Government Email</label>
+          <input type="email" id="signin-email-input" placeholder="officer@department.gov.in" required class="input-dark" />
+        </div>
+        <div>
+          <label class="block font-bold text-[#FFFFFF] uppercase tracking-wider mb-1">Password</label>
+          <input type="password" id="signin-password-input" placeholder="••••••••" required class="input-dark" />
+        </div>
+        <button type="submit" class="w-full py-3.5 rounded-xl bg-gradient-to-r from-[#FF6B35] via-[#EA580C] to-[#FF6B35] hover:from-[#EA580C] hover:to-[#FF6B35] text-white font-bold text-xs uppercase tracking-wider shadow-xl shadow-[#FF6B35]/30 transition">
+          Launch Dashboard →
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       DASHBOARD (PLATFORM) - LEFT SIDEBAR LAYOUT
+  ============================================================= -->
+  <div id="page-dashboard" class="hidden min-h-screen flex bg-[#0F5132]">
+
+    <!-- Left Sticky Sidebar Navigation -->
+    <aside class="w-64 bg-[#0B3D26] border-r border-[#166534] flex flex-col justify-between shrink-0 sticky top-0 h-screen z-40 shadow-2xl">
+      <div class="p-5 space-y-6">
+        
+        <!-- Brand / Header Logo -->
+        <div class="flex items-center gap-3 cursor-pointer group" onclick="showPage('landing')">
+          <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-[#FF6B35] to-[#FFA07A] flex items-center justify-center text-white shadow-md shadow-[#FF6B35]/30 group-hover:scale-105 transition-transform">
+            <i data-lucide="sparkles" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h1 class="text-base font-serif font-bold tracking-tight text-[#FFFFFF] leading-none">
+              GovInnovate <span class="bg-gradient-to-r from-[#FF6B35] to-[#E2E8F0] bg-clip-text text-transparent">OS</span>
+            </h1>
+            <div class="mt-1">
+              <span class="text-[9px] font-mono font-bold uppercase bg-[#FF6B35]/15 text-[#FF6B35] px-2 py-0.5 rounded-full border border-[#FF6B35]/30 inline-block">
+                GFR-Informed
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Vertical Navigation Links -->
+        <nav class="space-y-1.5 pt-2">
+          <button id="nav-overview" onclick="switchView('overview')" class="sidebar-nav-item active-sidebar-tab">
+            <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
+            <span>Overview</span>
+          </button>
+          <button id="nav-templates" onclick="switchView('templates')" class="sidebar-nav-item">
+            <i data-lucide="file-code-2" class="w-4 h-4"></i>
+            <span>Templates</span>
+          </button>
+          <button id="nav-sandbox" onclick="switchView('sandbox')" class="sidebar-nav-item">
+            <i data-lucide="boxes" class="w-4 h-4"></i>
+            <span>Sandbox</span>
+          </button>
+          <button id="nav-evaluator" onclick="switchView('evaluator')" class="sidebar-nav-item">
+            <i data-lucide="shield-check" class="w-4 h-4"></i>
+            <span>Evaluator</span>
+          </button>
+          <button id="nav-dept" onclick="switchView('department')" class="sidebar-nav-item">
+            <i data-lucide="building-2" class="w-4 h-4"></i>
+            <span>Department</span>
+          </button>
+          <button id="nav-startup" onclick="switchView('startup')" class="sidebar-nav-item">
+            <i data-lucide="rocket" class="w-4 h-4"></i>
+            <span>Startup Hub</span>
+          </button>
+        </nav>
+      </div>
+
+      <!-- Bottom Sidebar Controls -->
+      <div class="p-5 border-t border-[#166534] space-y-3 bg-[#0B3D26]">
+        <!-- Escrow Balance Trigger -->
+        <button onclick="toggleEscrowDrawer(true)" class="w-full flex items-center justify-between p-3 rounded-xl bg-[#0F5132] hover:bg-[#166534] border border-[#166534] text-left transition group">
+          <div class="flex items-center gap-2.5">
+            <div class="w-7 h-7 rounded-lg bg-[#FF6B35]/20 text-[#FF6B35] flex items-center justify-center">
+              <i data-lucide="wallet" class="w-4 h-4"></i>
+            </div>
+            <div>
+              <span class="text-[10px] text-[#E2E8F0] block uppercase font-bold tracking-wider">Vault Balance</span>
+              <strong class="font-mono text-xs text-[#FFFFFF]" id="nav-escrow-balance">₹4.85 Cr</strong>
+            </div>
+          </div>
+          <span class="w-2 h-2 rounded-full bg-[#FF6B35] animate-pulse"></span>
+        </button>
+
+        <!-- 1-Click Simulated Demo Button -->
+        <button onclick="runAutoDemoSimulation()" class="w-full py-2.5 px-3 bg-gradient-to-r from-[#FF6B35] to-[#EA580C] hover:from-[#EA580C] hover:to-[#FF6B35] text-white rounded-xl text-xs font-bold uppercase tracking-wider transition shadow-lg shadow-[#FF6B35]/30 flex items-center justify-center gap-2">
+          <i data-lucide="play" class="w-3.5 h-3.5"></i>
+          <span>Simulate Demo</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main View Content Area -->
+    <main class="flex-1 max-w-7xl mx-auto px-6 sm:px-8 py-8 w-full space-y-8 overflow-y-auto">
+
+      <!-- VIEW 0: OVERVIEW -->
+      <div id="view-overview" class="space-y-6">
+        <div class="flex flex-wrap justify-between items-center gap-4">
+          <div>
+            <h2 class="text-3xl font-serif text-[#FFFFFF]">Platform Command Overview</h2>
+            <p class="text-xs text-[#E2E8F0] mt-1 font-medium">Live monitoring of simulated sandboxes, escrow balances, and challenge formulation.</p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3.5">
+          <div class="p-4 rounded-2xl bg-[#0B3D26] border border-[#FF6B35]/25">
+            <div class="text-[10px] font-mono font-bold text-[#FF6B35] uppercase">Simulated Pilots</div>
+            <div class="text-2xl font-black text-[#FFFFFF] font-mono mt-1" id="ov-active-pilots">2</div>
+          </div>
+          <div class="p-4 rounded-2xl bg-[#0B3D26] border border-[#166534]">
+            <div class="text-[10px] font-mono font-bold text-[#FFFFFF] uppercase">Scale-Up Approved</div>
+            <div class="text-2xl font-black text-[#FFFFFF] font-mono mt-1" id="ov-approved">1</div>
+          </div>
+          <div class="p-4 rounded-2xl bg-[#0B3D26] border border-[#FF6B35]/25">
+            <div class="text-[10px] font-mono font-bold text-[#FF6B35] uppercase">Total Escrow</div>
+            <div class="text-2xl font-black text-[#FFFFFF] font-mono mt-1" id="ov-escrow">₹4.85 Cr</div>
+          </div>
+          <div class="p-4 rounded-2xl bg-[#0B3D26] border border-[#166534]">
+            <div class="text-[10px] font-mono font-bold text-[#E2E8F0] uppercase">Disbursed</div>
+            <div class="text-2xl font-black text-[#FFFFFF] font-mono mt-1" id="ov-disbursed">₹25,00,000</div>
+          </div>
+          <div class="p-4 rounded-2xl bg-[#0B3D26] border border-[#FF6B35]/25">
+            <div class="text-[10px] font-mono font-bold text-[#FF6B35] uppercase">Challenges</div>
+            <div class="text-2xl font-black text-[#FFFFFF] font-mono mt-1" id="ov-challenges">2</div>
+          </div>
+          <div class="p-4 rounded-2xl bg-[#0B3D26] border border-[#166534]">
+            <div class="text-[10px] font-mono font-bold text-[#FFFFFF] uppercase">Compliance</div>
+            <div class="text-2xl font-black text-[#FFFFFF] font-mono mt-1">Aligned</div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div class="lg:col-span-2 bg-[#0B3D26] rounded-3xl border border-[#166534] p-6 shadow-xl">
+            <h3 class="text-sm font-bold text-[#FFFFFF] mb-4 flex items-center gap-2">
+              <i data-lucide="activity" class="w-4 h-4 text-[#FF6B35]"></i> Real-time Simulated Activity Feed
+            </h3>
+            <div class="divide-y divide-[#166534] text-xs text-[#E2E8F0]">
+              <div class="py-3.5 flex items-center justify-between">
+                <span>AgroVision AI Labs milestone approved — ₹25,00,000 released</span>
+                <span class="font-mono text-[10px] text-[#E2E8F0]/60">2026-08-28</span>
+              </div>
+              <div class="py-3.5 flex items-center justify-between">
+                <span>HydroSense submitted Milestone 2 acoustic telemetry</span>
+                <span class="font-mono text-[10px] text-[#E2E8F0]/60">2026-08-27</span>
+              </div>
+              <div class="py-3.5 flex items-center justify-between">
+                <span>Hyperspectral Crop Assessment Challenge posted</span>
+                <span class="font-mono text-[10px] text-[#E2E8F0]/60">2026-08-26</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-[#0B3D26] rounded-3xl border border-[#166534] p-6 shadow-xl">
+            <h3 class="text-sm font-bold text-[#FFFFFF] mb-4">Pilot Progress Track</h3>
+            <div id="ov-pilot-progress" class="space-y-4"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- VIEW 1: LEGAL TEMPLATES STUDIO -->
+      <div id="view-templates" class="space-y-5 hidden">
+        
+        <!-- Studio Compact Topbar -->
+        <div class="flex flex-wrap items-center justify-between gap-3 bg-[#0B3D26] p-4 rounded-2xl border border-[#166534]">
+          <div>
+            <h3 class="text-base font-bold text-[#FFFFFF] flex items-center gap-2">
+              <i data-lucide="file-check-2" class="w-4 h-4 text-[#FF6B35]"></i>
+              <span>GFR & CVC Template Studio</span>
+            </h3>
+            <p class="text-xs text-[#E2E8F0] mt-0.5">Pre-vetted procurement & sandbox legal contracts with live variable binding[cite: 1, 2].</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <button onclick="copyCurrentDocument()" class="btn-secondary py-1.5 px-3 text-xs">
+              <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+              <span id="copy-btn-text">Copy Text</span>
+            </button>
+            <button onclick="downloadAsDocument()" class="btn-primary py-1.5 px-3 text-xs">
+              <i data-lucide="download" class="w-3.5 h-3.5"></i>
+              <span>Export (.md)</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+          <!-- Left List of Templates -->
+          <div class="lg:col-span-4 space-y-2">
+            <div onclick="selectTemplate('problem_statement')" id="tpl-card-problem_statement" class="template-card active-card">
+              <div class="text-xs font-bold text-[#FFFFFF]">1. Outcome Problem Statement</div>
+              <p class="text-[11px] text-[#E2E8F0] mt-0.5">Defines KPI targets and testing perimeter[cite: 1, 2].</p>
+            </div>
+            <div onclick="selectTemplate('evaluation_criteria')" id="tpl-card-evaluation_criteria" class="template-card">
+              <div class="text-xs font-bold text-[#FFFFFF]">2. QCBS Evaluation Rubric</div>
+              <p class="text-[11px] text-[#E2E8F0] mt-0.5">5-pillar scoring weights with DPIIT exemption gate[cite: 1, 2].</p>
+            </div>
+            <div onclick="selectTemplate('pilot_agreement')" id="tpl-card-pilot_agreement" class="template-card">
+              <div class="text-xs font-bold text-[#FFFFFF]">3. Sandbox Pilot Agreement</div>
+              <p class="text-[11px] text-[#E2E8F0] mt-0.5">Tripartite model between Department, Startup, and Escrow[cite: 1, 2].</p>
+            </div>
+            <div onclick="selectTemplate('ip_data_clause')" id="tpl-card-ip_data_clause" class="template-card">
+              <div class="text-xs font-bold text-[#FFFFFF]">4. IP Retainment & Data Clause</div>
+              <p class="text-[11px] text-[#E2E8F0] mt-0.5">Guarantees 100% startup algorithm ownership[cite: 1, 2].</p>
+            </div>
+            <div onclick="selectTemplate('cybersecurity_risk')" id="tpl-card-cybersecurity_risk" class="template-card">
+              <div class="text-xs font-bold text-[#FFFFFF]">5. Cybersecurity & Risk Protocols</div>
+              <p class="text-[11px] text-[#E2E8F0] mt-0.5">Cloud boundaries, CERT-In alignment, and failover triggers[cite: 1, 2].</p>
+            </div>
+            <div onclick="selectTemplate('procurement_scaleup')" id="tpl-card-procurement_scaleup" class="template-card">
+              <div class="text-xs font-bold text-[#FFFFFF]">6. Direct GeM Scale-Up Pathway</div>
+              <p class="text-[11px] text-[#E2E8F0] mt-0.5">Conversion certificate authorizing single-source rollout[cite: 1, 2].</p>
+            </div>
+          </div>
+
+          <!-- Structured Document Viewer -->
+          <div class="lg:col-span-8 bg-[#0B3D26] rounded-2xl border border-[#166534] shadow-xl flex flex-col overflow-hidden">
+            
+            <!-- Compact Header -->
+            <div class="px-5 py-3 bg-[#0F5132] border-b border-[#166534] flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-[#FF6B35]"></span>
+                <span class="text-xs font-bold text-[#FFFFFF]" id="editor-file-title">Outcome Problem Formulation</span>
+              </div>
+              <button onclick="applyActiveTemplateToDepartment()" class="px-2.5 py-1 bg-[#FF6B35]/20 hover:bg-[#FF6B35]/30 text-[#FF6B35] border border-[#FF6B35]/40 rounded-lg text-xs font-bold transition">
+                Use in New Challenge
+              </button>
+            </div>
+
+            <!-- Parameters Grid Form -->
+            <div class="p-3.5 bg-[#0B3D26]/60 border-b border-[#166534] grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-xs">
+              <div>
+                <label class="block font-semibold text-[#E2E8F0] text-[10px] mb-1" id="param-label-1">Department Authority</label>
+                <input type="text" id="param-input-1" value="Water Supply & Sanitation Department, GoM" oninput="renderTemplateText()" class="input-dark py-1 px-2.5 text-xs" />
+              </div>
+              <div>
+                <label class="block font-semibold text-[#E2E8F0] text-[10px] mb-1" id="param-label-2">Executing Startup Entity</label>
+                <input type="text" id="param-input-2" value="HydroSense DeepTech Innovations Pvt Ltd" oninput="renderTemplateText()" class="input-dark py-1 px-2.5 text-xs" />
+              </div>
+              <div>
+                <label class="block font-semibold text-[#E2E8F0] text-[10px] mb-1" id="param-label-3">Sandbox Escrow Budget</label>
+                <input type="text" id="param-input-3" value="₹38,00,000 across 3 Milestones" oninput="renderTemplateText()" class="input-dark py-1 px-2.5 text-xs" />
+              </div>
+            </div>
+
+            <!-- Clean Executive Legal Document Viewer -->
+            <div class="p-5 flex-1 bg-[#0F5132]/60 overflow-y-auto max-h-[380px] space-y-3" id="template-card-container">
+              <!-- Rendered cleanly as structured HTML sections -->
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- VIEW 2: SANDBOX STUDIO -->
+      <div id="view-sandbox" class="space-y-6 hidden">
+        <div class="bg-[#0B3D26] p-6 rounded-3xl border border-[#166534] shadow-xl">
+          <h3 class="text-xl font-serif font-bold text-[#FFFFFF]">Controlled Sandbox & Pilot Design Studio</h3>
+          <p class="text-xs text-[#E2E8F0] mt-1">Configure isolation parameters, synthetic data boundaries, and failover triggers[cite: 1, 2].</p>
+        </div>
+
+        <div class="bg-[#0B3D26] rounded-3xl border border-[#166534] shadow-xl overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs">
+              <thead>
+                <tr class="text-[#E2E8F0] font-bold uppercase tracking-wider border-b border-[#166534] bg-[#0F5132]">
+                  <th class="py-3.5 px-5">Startup & Pilot ID</th>
+                  <th class="py-3.5 px-5">Testing Environment</th>
+                  <th class="py-3.5 px-5">Data Privacy Protocol</th>
+                  <th class="py-3.5 px-5">Risk Stop-Loss</th>
+                  <th class="py-3.5 px-5">IP Retainment</th>
+                  <th class="py-3.5 px-5 text-right">Status</th>
+                </tr>
+              </thead>
+              <tbody id="sandbox-table-body" class="divide-y divide-[#166534] text-[#FFFFFF]"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- VIEW 3: EVALUATOR AUDIT PANEL -->
+      <div id="view-evaluator" class="space-y-6 hidden">
+        <div class="bg-[#0B3D26] p-6 rounded-3xl border border-[#166534] shadow-xl flex items-center justify-between">
+          <div>
+            <h3 class="text-xl font-serif font-bold text-[#FFFFFF]">Technical Evaluation & Audit Matrix</h3>
+            <p class="text-xs text-[#E2E8F0]">Conduct multi-parameter scoring and approve milestone escrow releases[cite: 1, 2].</p>
+          </div>
+          <span class="text-xs font-mono font-bold text-[#FF6B35] bg-[#FF6B35]/15 px-3 py-1 rounded-full border border-[#FF6B35]/30">Evaluation Committee Active</span>
+        </div>
+
+        <div class="bg-[#0B3D26] rounded-3xl border border-[#166534] shadow-xl overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs">
+              <thead>
+                <tr class="text-[#E2E8F0] font-bold uppercase tracking-wider border-b border-[#166534] bg-[#0F5132]">
+                  <th class="py-3.5 px-5">Startup</th>
+                  <th class="py-3.5 px-5">Operational Challenge</th>
+                  <th class="py-3.5 px-5">Milestone</th>
+                  <th class="py-3.5 px-5">Score</th>
+                  <th class="py-3.5 px-5">Status</th>
+                  <th class="py-3.5 px-5 text-right">Action</th>
+                </tr>
+              </thead>
+              <tbody id="evaluator-table-body" class="divide-y divide-[#166534] text-[#FFFFFF]"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- VIEW 4: DEPARTMENT PANEL -->
+      <div id="view-department" class="space-y-6 hidden">
+        <div class="bg-[#0B3D26] rounded-3xl border border-[#166534] p-6 shadow-xl space-y-4">
+          <h4 class="text-xl font-serif font-bold text-[#FFFFFF]">Post New Outcome-Based Challenge</h4>
+          <form onsubmit="handlePostChallenge(event)" class="space-y-4 text-xs">
+            <div>
+              <label class="block font-bold text-[#FFFFFF] uppercase tracking-wider mb-1">Challenge Title</label>
+              <input type="text" id="post-title" placeholder="e.g. AI-Driven Real-Time Land Encroachment Monitoring" required class="input-dark" />
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div>
+                <label class="block font-bold text-[#FFFFFF] uppercase tracking-wider mb-1">Department</label>
+                <input type="text" id="post-dept" placeholder="e.g. Revenue & Disaster Management Dept" required class="input-dark" />
+              </div>
+              <div>
+                <label class="block font-bold text-[#FFFFFF] uppercase tracking-wider mb-1">Sandbox Environment</label>
+                <select id="post-sb-template" class="input-dark">
+                  <option value="Urban Geofenced Zone (5km)">Urban Geofenced Zone (5km)</option>
+                  <option value="Synthetic Data Testbed">Synthetic Data Testbed</option>
+                  <option value="Shadow Telemetry Mode">Shadow Mode Telemetry</option>
+                </select>
+              </div>
+              <div>
+                <label class="block font-bold text-[#FFFFFF] uppercase tracking-wider mb-1">Escrow Budget (₹)</label>
+                <input type="number" id="post-budget" placeholder="2500000" required class="input-dark" />
+              </div>
+            </div>
+            <div>
+              <label class="block font-bold text-[#FFFFFF] uppercase tracking-wider mb-1">Target Measurable KPI Benchmark</label>
+              <input type="text" id="post-kpi" placeholder="e.g. >95% accuracy in anomaly identification within 48h" required class="input-dark" />
+            </div>
+            <div>
+              <label class="block font-bold text-[#FFFFFF] uppercase tracking-wider mb-1">Scope & Operational Context</label>
+              <textarea id="post-desc" rows="3" placeholder="Outline pilot objectives..." required class="input-dark"></textarea>
+            </div>
+            <div class="flex justify-end">
+              <button type="submit" class="btn-primary">Publish Challenge Statement</button>
+            </div>
+          </form>
+        </div>
+
+        <div class="bg-[#0B3D26] rounded-3xl border border-[#166534] shadow-xl overflow-hidden">
+          <div class="p-4 border-b border-[#166534] flex justify-between items-center bg-[#0F5132]">
+            <h4 class="text-xs font-bold text-[#FFFFFF] uppercase tracking-wider">Published Department Challenges</h4>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs">
+              <thead>
+                <tr class="text-[#E2E8F0] font-bold uppercase tracking-wider border-b border-[#166534] bg-[#0F5132]/60">
+                  <th class="py-3 px-5">Title</th>
+                  <th class="py-3 px-5">Department</th>
+                  <th class="py-3 px-5">Target KPI</th>
+                  <th class="py-3 px-5">Escrow</th>
+                  <th class="py-3 px-5 text-right">Published</th>
+                </tr>
+              </thead>
+              <tbody id="dept-table-body" class="divide-y divide-[#166534] text-[#FFFFFF]"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- VIEW 5: STARTUP HUB -->
+      <div id="view-startup" class="space-y-6 hidden">
+        <div class="bg-[#0B3D26] p-6 rounded-3xl border border-[#166534] flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <span class="inline-flex items-center gap-1.5 bg-[#FF6B35]/15 text-[#FF6B35] border border-[#FF6B35]/30 text-[11px] font-mono px-2.5 py-0.5 rounded-md font-bold">
+              DPIIT Recognized Startup Profile[cite: 1, 2]
+            </span>
+            <h3 class="text-2xl font-serif font-bold text-[#FFFFFF] mt-2">HydroSense DeepTech Innovations</h3>
+            <p class="text-xs text-[#E2E8F0]">Prior turnover and past experience criteria waived under GFR Rule 173(i)[cite: 1, 2].</p>
+          </div>
+          <button onclick="switchView('sandbox')" class="btn-secondary">View Sandbox Status</button>
+        </div>
+
+        <div>
+          <h4 class="text-xs font-bold text-[#E2E8F0] tracking-wider uppercase mb-3">Active Pilots & Milestone Feed</h4>
+          <div id="startup-stepper-container" class="space-y-4"></div>
+        </div>
+
+        <div>
+          <h4 class="text-xs font-bold text-[#E2E8F0] tracking-wider uppercase mb-3">Open Innovation Challenges</h4>
+          <div id="startup-challenges-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+        </div>
+      </div>
+
+    </main>
+
+    <!-- Evaluation Rubric Modal -->
+    <div id="evalModal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 hidden items-center justify-center p-4">
+      <div class="bg-[#0B3D26] rounded-3xl max-w-lg w-full p-6 shadow-2xl space-y-4 border border-[#166534] text-[#FFFFFF]">
+        <div class="flex justify-between items-center border-b border-[#166534] pb-3">
+          <h3 class="text-lg font-serif font-bold text-[#FFFFFF]">Technical Evaluation Scoring Rubric</h3>
+          <button onclick="closeEvalModal()" class="text-[#E2E8F0] hover:text-[#FFFFFF] text-lg">&times;</button>
+        </div>
+        <div class="space-y-3.5 text-xs">
+          <div>
+            <div class="flex justify-between font-bold text-[#FFFFFF] mb-1">
+              <span>Technical Merit (30% Weight)</span>
+              <span id="score-val-1" class="text-[#FF6B35] font-mono">95%</span>
+            </div>
+            <input type="range" min="50" max="100" value="95" class="w-full accent-[#FF6B35]" oninput="updateModalRubricTotal()" id="modal-range-1">
+          </div>
+          <div>
+            <div class="flex justify-between font-bold text-[#FFFFFF] mb-1">
+              <span>Outcome KPI Benchmark (25% Weight)</span>
+              <span id="score-val-2" class="text-[#FF6B35] font-mono">92%</span>
+            </div>
+            <input type="range" min="50" max="100" value="92" class="w-full accent-[#FF6B35]" oninput="updateModalRubricTotal()" id="modal-range-2">
+          </div>
+          <div>
+            <div class="flex justify-between font-bold text-[#FFFFFF] mb-1">
+              <span>Cybersecurity & Privacy (20% Weight)</span>
+              <span id="score-val-3" class="text-[#FF6B35] font-mono">98%</span>
+            </div>
+            <input type="range" min="50" max="100" value="98" class="w-full accent-[#FF6B35]" oninput="updateModalRubricTotal()" id="modal-range-3">
+          </div>
+          <div>
+            <div class="flex justify-between font-bold text-[#FFFFFF] mb-1">
+              <span>Commercial Scalability (15% Weight)</span>
+              <span id="score-val-4" class="text-[#FF6B35] font-mono">88%</span>
+            </div>
+            <input type="range" min="50" max="100" value="88" class="w-full accent-[#FF6B35]" oninput="updateModalRubricTotal()" id="modal-range-4">
+          </div>
+          <div class="p-3 bg-[#0F5132] rounded-2xl border border-[#166534] flex justify-between items-center">
+            <span class="font-bold text-[#FFFFFF]">DPIIT Exemption Gate (10%)</span>
+            <span class="font-mono text-[#FF6B35] font-bold">100% (Passed)</span>
+          </div>
+          <div class="p-4 rounded-2xl bg-[#FF6B35]/15 flex justify-between items-center border border-[#FF6B35]/30">
+            <div>
+              <span class="text-[10px] uppercase font-bold text-[#FFFFFF] block">Aggregate QCBS Score</span>
+              <span class="text-[10px] text-[#E2E8F0]">&ge;85.0% required for scale conversion</span>
+            </div>
+            <span class="text-2xl font-black font-mono text-[#FF6B35]" id="modal-rubric-total">94.3%</span>
+          </div>
+        </div>
+        <div class="flex justify-end gap-2 pt-2 border-t border-[#166534]">
+          <button onclick="closeEvalModal()" class="btn-secondary">Cancel</button>
+          <button onclick="confirmApproval()" class="btn-primary">Approve & Release Tranche</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Escrow Side Drawer Modal -->
+    <div id="escrowDrawer" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 hidden justify-end">
+      <div class="bg-[#0B3D26] w-full max-w-md h-full shadow-2xl p-6 flex flex-col justify-between border-l border-[#166534]">
+        <div class="space-y-4">
+          <div class="flex justify-between items-center border-b border-[#166534] pb-3">
+            <h3 class="text-lg font-serif font-bold text-[#FFFFFF]">Escrow Financial Ledger</h3>
+            <button onclick="toggleEscrowDrawer(false)" class="text-[#E2E8F0] hover:text-[#FFFFFF] text-lg">&times;</button>
+          </div>
+          <div class="bg-[#0F5132] p-4 rounded-2xl border border-[#166534]">
+            <span class="text-[10px] uppercase font-bold text-[#E2E8F0]">Total Escrow Vault</span>
+            <div class="text-2xl font-black font-mono text-[#FF6B35]" id="drawer-escrow-balance">₹4.85 Cr</div>
+          </div>
+          <div class="space-y-2">
+            <h4 class="text-xs font-bold text-[#E2E8F0] uppercase tracking-wider">Payout & Disbursement Log</h4>
+            <div id="escrow-tx-list" class="space-y-2 max-h-96 overflow-y-auto"></div>
+          </div>
+        </div>
+        <button onclick="toggleEscrowDrawer(false)" class="w-full py-3 bg-[#0F5132] hover:bg-[#166534] text-[#FFFFFF] rounded-xl text-xs font-bold tracking-wider uppercase border border-[#166534] transition">
+          Close
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
