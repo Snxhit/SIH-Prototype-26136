@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useMemo } from "react";
 import {
   Building2,
   Rocket,
@@ -24,6 +24,8 @@ import {
   Wallet,
   Send,
   Zap,
+  Sparkles,
+  Loader2,
 } from "lucide-react";
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
@@ -43,6 +45,7 @@ import type { ChallengePrefill } from "@/lib/templates";
 import SandboxStudio from "@/components/sandbox/SandboxStudio";
 import SandboxTable from "@/components/sandbox/SandboxTable";
 import type { SandboxConfig } from "@/lib/sandbox";
+import type { AnalysisResult } from "@/app/api/analysis/route";
 import EvalRubricModal from "@/components/evaluator/EvalRubricModal";
 import type { EvaluationScores } from "@/lib/evaluations";
 import { computeWeightedScore, EVALUATION_THRESHOLD } from "@/lib/evaluations";
@@ -75,6 +78,7 @@ interface Pilot {
   stop_loss: string;
   ip_retainment: string;
   audit_score: number;
+  created_at: string;
 }
 
 const currency = (value: number) =>
@@ -109,6 +113,106 @@ const dippNumber = (id: string) =>
   `DIPP-${id
     .split("")
     .reduce((acc, char) => (acc * 31 + char.charCodeAt(0)) % 900000 + 100000, 7)}`;
+
+/* ------------------------------------------------------------------ */
+/* Impact metrics (policymaker analytics)                               */
+/* ------------------------------------------------------------------ */
+
+interface ImpactMetrics {
+  funnel: { published: number; applied: number; completed: number; scaled: number };
+  activePilots: number;
+  challengeBudget: number;
+  trancheBudget: number;
+  escrowAllocated: number;
+  escrowDisbursed: number;
+  escrowUtilization: number;
+  medianDaysToComplete: number | null;
+  approvalRate: number | null;
+  avgWeightedScore: number | null;
+  avgMilestoneProgress: number;
+  sectors: { name: string; challenges: number }[];
+}
+
+function computeImpact(
+  challenges: Challenge[],
+  pilots: Pilot[],
+  evaluations: DbEvaluation[],
+  escrow: EscrowState
+): ImpactMetrics {
+  const funnel = {
+    published: challenges.length,
+    applied: pilots.length,
+    completed: pilots.filter(
+      (p) => p.status === "completed" || p.status === "scaled_up"
+    ).length,
+    scaled: pilots.filter((p) => p.status === "scaled_up").length,
+  };
+
+  const days: number[] = [];
+  for (const pilot of pilots) {
+    if (pilot.status !== "completed" && pilot.status !== "scaled_up") continue;
+    if (!pilot.created_at) continue;
+    const ev = evaluations.find(
+      (e) => e.pilot_id === pilot.id && e.is_approved && e.evaluated_at
+    );
+    if (!ev) continue;
+    if (!ev.evaluated_at) continue;
+    const start = new Date(pilot.created_at).getTime();
+    const end = new Date(ev.evaluated_at).getTime();
+    if (Number.isFinite(start) && Number.isFinite(end) && end >= start) {
+      days.push(Math.round((end - start) / 86400000));
+    }
+  }
+  const sorted = [...days].sort((a, b) => a - b);
+  const medianDaysToComplete =
+    sorted.length > 0
+      ? sorted.length % 2 === 0
+        ? Math.round((sorted[sorted.length / 2 - 1] + sorted[sorted.length / 2]) / 2)
+        : sorted[Math.floor(sorted.length / 2)]
+      : null;
+
+  const approvedCount = evaluations.filter((e) => e.is_approved).length;
+  const sectorMap = new Map<string, number>();
+  for (const c of challenges) {
+    sectorMap.set(c.department_name, (sectorMap.get(c.department_name) ?? 0) + 1);
+  }
+  const sectors = [...sectorMap.entries()]
+    .map(([name, count]) => ({ name, challenges: count }))
+    .sort((a, b) => b.challenges - a.challenges);
+
+  const progress =
+    pilots.length > 0
+      ? pilots.reduce(
+          (sum, p) => sum + (p.current_milestone / p.total_milestones) * 100,
+          0
+        ) / pilots.length
+      : 0;
+
+  return {
+    funnel,
+    activePilots: pilots.filter((p) => p.status === "active").length,
+    challengeBudget: challenges.reduce((sum, c) => sum + c.budget_allocation, 0),
+    trancheBudget: pilots.reduce((sum, p) => sum + p.tranche_amount, 0),
+    escrowAllocated: escrow.total_allocated,
+    escrowDisbursed: escrow.total_disbursed,
+    escrowUtilization:
+      escrow.total_allocated > 0
+        ? Math.round((escrow.total_disbursed / escrow.total_allocated) * 100)
+        : 0,
+    medianDaysToComplete,
+    approvalRate:
+      evaluations.length > 0
+        ? Math.round((approvedCount / evaluations.length) * 100)
+        : null,
+    avgWeightedScore:
+      evaluations.length > 0
+        ? evaluations.reduce((sum, e) => sum + e.weighted_score, 0) /
+          evaluations.length
+        : null,
+    avgMilestoneProgress: Math.round(progress),
+    sectors,
+  };
+}
 
 const MOCK_CHALLENGES: Challenge[] = [
   {
@@ -161,28 +265,30 @@ const MOCK_PILOTS: Pilot[] = [
     stop_loss: "Max 5.0% False Positive Tolerance",
     ip_retainment: "100% Retained by Startup",
     audit_score: 0,
+    created_at: "2026-07-20",
   },
   {
     id: "p2",
     challenge_id: "c2",
     startup_id: "s2",
     startup_name: "CivicFlow Labs",
-    status: "active",
-    current_milestone: 1,
+    status: "scaled_up",
+    current_milestone: 3,
     total_milestones: 3,
     tranche_amount: 1200000,
     environment: "Synthetic Data Testbed",
     data_privacy: "100% Synthetic Dummy Datasets",
     stop_loss: "Max 2.0% Anomaly Deviation",
     ip_retainment: "100% Retained by Startup",
-    audit_score: 0,
+    audit_score: 94.3,
+    created_at: "2026-07-10",
   },
   {
     id: "p3",
     challenge_id: "c3",
     startup_id: "s3",
     startup_name: "Mandibazaar AI",
-    status: "active",
+    status: "completed",
     current_milestone: 3,
     total_milestones: 3,
     tranche_amount: 2000000,
@@ -191,13 +297,14 @@ const MOCK_PILOTS: Pilot[] = [
     stop_loss: "Relaxed: Max 10.0% Early Prototype",
     ip_retainment: "100% Retained by Startup",
     audit_score: 0,
+    created_at: "2026-07-05",
   },
 ];
 
 const MOCK_EVALUATIONS: DbEvaluation[] = [
   {
     id: "e1",
-    pilot_id: "p1",
+    pilot_id: "p2",
     technical_merit: 95,
     kpi_accuracy: 92,
     cybersecurity: 98,
@@ -208,20 +315,6 @@ const MOCK_EVALUATIONS: DbEvaluation[] = [
     evaluator_notes: "Clear technical merit; approved for direct GeM conversion.",
     evaluated_at: "2026-08-04T09:30:00Z",
     created_at: "2026-08-04T09:30:00Z",
-  },
-  {
-    id: "e2",
-    pilot_id: "p2",
-    technical_merit: 94,
-    kpi_accuracy: 92,
-    cybersecurity: 96,
-    scalability: 92,
-    dpiit_recognition: 100,
-    weighted_score: 94.2,
-    is_approved: true,
-    evaluator_notes: "Strong KPI alignment; cybersecurity posture verified.",
-    evaluated_at: "2026-08-05T11:00:00Z",
-    created_at: "2026-08-05T11:00:00Z",
   },
 ];
 
@@ -271,6 +364,7 @@ function mapDbPilot(row: DbPilot): Pilot {
     stop_loss: row.stop_loss,
     ip_retainment: row.ip_retainment,
     audit_score: row.audit_score,
+    created_at: row.created_at ?? new Date().toISOString().slice(0, 10),
   };
 }
 
@@ -509,6 +603,7 @@ function useDashboard() {
         stop_loss: "Max 5.0% False Positive Tolerance",
         ip_retainment: "100% Retained by Startup",
         audit_score: 0,
+        created_at: new Date().toISOString().slice(0, 10),
       },
     ]);
     notify("Application submitted. Your pilot workspace is now active.");
@@ -683,10 +778,15 @@ function useDashboard() {
     return { approved, weighted_score: weighted };
   };
 
-  const submitMilestoneEvidence = (pilotId: string) => {
+  const submitMilestoneEvidence = (pilotId: string, content: string) => {
+    const trimmed = content.trim();
+    if (!trimmed) {
+      notify("Add evidence text before submitting the milestone feed.");
+      return;
+    }
     setEvidenceFeed((prev) => ({
       ...prev,
-      [pilotId]: new Date().toISOString(),
+      [pilotId]: trimmed,
     }));
     notify(
       "Milestone evidence feed submitted · Technical Evaluator Committee notified via realtime."
@@ -783,6 +883,9 @@ function PersonaSwitcher({
           </TabsTrigger>
           <TabsTrigger value="sandbox" className="gap-2 px-3">
             <FlaskConical /> Sandbox
+          </TabsTrigger>
+          <TabsTrigger value="impact" className="gap-2 px-3">
+            <TrendingUp /> Impact
           </TabsTrigger>
         </TabsList>
       </Tabs>
@@ -1243,6 +1346,20 @@ function PipelineTimeline({ pilot }: { pilot: Pilot }) {
   );
 }
 
+/* ------------------------------------------------------------------ */
+/* Startup Hub                                                          */
+/* ------------------------------------------------------------------ */
+
+const defaultEvidenceFor = (pilot: Pilot): string => {
+  if (pilot.id === "p1")
+    return "The pilot achieved 94% identification rate across the 5km geofenced urban zone; dashboard uptime maintained 24/7; anonymized PII handled at the edge with no breach.";
+  if (pilot.id === "p2")
+    return "CivicFlow delivered the grievance pipeline with 92% SLA adherence; synthetic testbed ran 40,000 iterations with anomaly deviation held under 2%.";
+  if (pilot.id === "p3")
+    return "Mandibazaar onboarded 5,000 procurement listings; vendor verification accuracy reached 88%; final geospatial certificate integration pending.";
+  return "Milestone deliverable submitted with operational telemetry attached; core KPI aligned to the challenge target metric.";
+};
+
 function StartupHub({
   challenges,
   pilots,
@@ -1256,12 +1373,13 @@ function StartupHub({
   evidenceFeed: Record<string, string>;
   onApply: (challengeId: string) => void;
   onAdvance: (pilotId: string) => void;
-  onSubmitEvidence: (pilotId: string) => void;
+  onSubmitEvidence: (pilotId: string, content: string) => void;
 }) {
   const appliedIds = new Set(pilots.map((pilot) => pilot.challenge_id));
   const activePilots = pilots.filter(
     (pilot) => pilot.status === "active" || pilot.status === "completed"
   );
+  const [drafts, setDrafts] = useState<Record<string, string>>({});
 
   return (
     <div className="space-y-6">
@@ -1306,32 +1424,60 @@ function StartupHub({
               <div key={pilot.id} className="space-y-2">
                 <PipelineTimeline pilot={pilot} />
                 {pilot.status === "active" && (
-                  <div className="flex flex-wrap justify-end gap-2">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="gap-2"
-                      disabled={Boolean(evidenceFeed[pilot.id])}
-                      onClick={() => onSubmitEvidence(pilot.id)}
-                    >
+                  <div className="space-y-2">
+                    <div className="flex flex-wrap items-center justify-end gap-2">
                       {evidenceFeed[pilot.id] ? (
-                        <>
-                          <CheckCircle2 /> Evidence Feed Submitted
-                        </>
+                        <span className="inline-flex items-center gap-1.5 text-sm font-medium text-emerald-600 dark:text-emerald-400">
+                          <CheckCircle2 className="size-4" /> Evidence feed submitted
+                        </span>
                       ) : (
-                        <>
-                          <Send /> Submit Milestone Evidence Feed
-                        </>
+                        <div className="w-full space-y-2 rounded-xl border border-border bg-muted/40 p-3">
+                          <Label
+                            htmlFor={`evidence-${pilot.id}`}
+                            className="text-xs text-muted-foreground"
+                          >
+                            Milestone evidence · description, link or KPIs achieved
+                          </Label>
+                          <Textarea
+                            id={`evidence-${pilot.id}`}
+                            rows={3}
+                            placeholder="e.g. Achieved 94% identification rate in the 5km geofenced zone; dashboard live 24/7; anonymized PII handled at the edge."
+                            value={drafts[pilot.id] ?? ""}
+                            onChange={(e) =>
+                              setDrafts((prev) => ({
+                                ...prev,
+                                [pilot.id]: e.target.value,
+                              }))
+                            }
+                            className="bg-background/60"
+                          />
+                          <div className="flex justify-end">
+                            <Button
+                              size="sm"
+                              className="gap-2"
+                              onClick={() =>
+                                onSubmitEvidence(pilot.id, drafts[pilot.id] ?? "")
+                              }
+                            >
+                              <Send className="size-4" /> Submit Milestone Evidence Feed
+                            </Button>
+                          </div>
+                        </div>
                       )}
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="gap-2"
-                      onClick={() => onAdvance(pilot.id)}
-                    >
-                      Submit Milestone <ArrowRight />
-                    </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="gap-2"
+                        onClick={() => onAdvance(pilot.id)}
+                      >
+                        Submit Milestone <ArrowRight />
+                      </Button>
+                    </div>
+                    {evidenceFeed[pilot.id] && (
+                      <p className="ml-auto max-w-xl truncate text-right text-xs text-muted-foreground">
+                        Latest: {evidenceFeed[pilot.id]}
+                      </p>
+                    )}
                   </div>
                 )}
               </div>
@@ -1388,17 +1534,53 @@ function EvaluatorPanel({
   pilots,
   evaluations,
   evidenceFeed,
+  challenges,
   onEvaluate,
 }: {
   pilots: Pilot[];
   evaluations: DbEvaluation[];
   evidenceFeed: Record<string, string>;
+  challenges: Challenge[];
   onEvaluate: (pilot: Pilot) => void;
 }) {
   const active = pilots.filter((pilot) => pilot.status === "active");
   const ready = pilots.filter((pilot) => pilot.status === "completed");
   const scaled = pilots.filter((pilot) => pilot.status === "scaled_up");
   const evaluationOf = new Map(evaluations.map((e) => [e.pilot_id, e]));
+  const challengeOf = new Map(challenges.map((c) => [c.id, c]));
+
+  const [screened, setScreened] = useState<Record<string, number>>({});
+  const [screening, setScreening] = useState<{
+    pilot: Pilot;
+    result: AnalysisResult | null;
+    loading: boolean;
+    evidence: string;
+    usedDefault: boolean;
+  } | null>(null);
+
+  const runScreen = async (pilot: Pilot) => {
+    const challenge = challengeOf.get(pilot.challenge_id ?? "");
+    const target_metrics =
+      challenge?.target_metrics ??
+      "Achieve measurable KPI aligned to the challenge objective";
+    const submitted = (evidenceFeed[pilot.id] ?? "").trim();
+    const usedDefault = !submitted;
+    const evidence = usedDefault ? defaultEvidenceFor(pilot) : submitted;
+    setScreening({ pilot, result: null, loading: true, evidence, usedDefault });
+    try {
+      const res = await fetch("/api/analysis", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ evidence_text: evidence, target_metrics }),
+      });
+      if (!res.ok) throw new Error("Analysis request failed");
+      const data = (await res.json()) as AnalysisResult;
+      setScreened((prev) => ({ ...prev, [pilot.id]: data.score }));
+      setScreening({ pilot, result: data, loading: false, evidence, usedDefault });
+    } catch {
+      setScreening({ pilot, result: null, loading: false, evidence, usedDefault });
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -1450,6 +1632,11 @@ function EvaluatorPanel({
                         </div>
                         <div className="leading-tight">
                           <span className="font-medium">{pilot.startup_name}</span>
+                          {screened[pilot.id] !== undefined && (
+                            <span className="ml-1.5 inline-flex items-center gap-1 rounded-full border border-[#FF6B35]/30 bg-[#FF6B35]/10 px-2 py-0.5 font-mono text-[11px] font-bold text-[#FF6B35]">
+                              <Sparkles className="size-3" /> AI {screened[pilot.id]}%
+                            </span>
+                          )}
                           {evidenceFeed[pilot.id] && (
                             <p className="mt-0.5 inline-flex items-center gap-1 text-[11px] text-muted-foreground">
                               <CheckCircle2 className="size-3 text-emerald-500" />
@@ -1501,14 +1688,30 @@ function EvaluatorPanel({
                           <CheckCircle2 className="size-4" /> Approved
                         </span>
                       ) : (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="gap-2"
-                          onClick={() => onEvaluate(pilot)}
-                        >
-                          <Sliders className="size-4" /> Audit & Evaluate
-                        </Button>
+                        <div className="flex flex-col items-end gap-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="gap-2"
+                            onClick={() => runScreen(pilot)}
+                            disabled={screening?.loading ?? false}
+                          >
+                            {screening?.pilot.id === pilot.id && screening.loading ? (
+                              <Loader2 className="size-4 animate-spin text-[#FF6B35]" />
+                            ) : (
+                              <Sparkles className="size-4 text-[#FF6B35]" />
+                            )}
+                            AI Screening
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="gap-2"
+                            onClick={() => onEvaluate(pilot)}
+                          >
+                            <Sliders className="size-4" /> Audit & Evaluate
+                          </Button>
+                        </div>
                       )}
                     </td>
                   </tr>
@@ -1518,6 +1721,141 @@ function EvaluatorPanel({
           </table>
         </CardContent>
       </Card>
+
+      {screening && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Sparkles className="size-4 text-[#FF6B35]" /> AI Evidence Screening ·{" "}
+              {screening.pilot.startup_name}
+            </CardTitle>
+            <CardDescription>
+              Assistive readiness check against the challenge target metrics (human QCBS
+              review remains the approval gate).
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-5">
+            {screening.loading ? (
+              <div className="flex items-center gap-3 rounded-xl border border-border bg-muted/40 px-4 py-6 text-sm text-muted-foreground">
+                <Loader2 className="size-5 animate-spin text-[#FF6B35]" />
+                Running AI readiness screening against target metrics…
+              </div>
+            ) : screening.result ? (
+              <>
+                <div className="grid gap-4 sm:grid-cols-[auto_1fr]">
+                  <div className="flex flex-col items-center justify-center gap-1 rounded-xl border border-border bg-muted/40 px-6 py-4">
+                    <p
+                      className={`font-mono text-4xl font-black ${
+                        screening.result.score >= 80
+                          ? "text-emerald-400"
+                          : screening.result.score >= 60
+                            ? "text-amber-400"
+                            : "text-[#FF6B35]"
+                      }`}
+                    >
+                      {screening.result.score}
+                    </p>
+                    <p className="text-[10px] uppercase tracking-wide text-muted-foreground">
+                      Readiness score
+                    </p>
+                    <Badge
+                      variant="outline"
+                      className={
+                        screening.result.score >= 80
+                          ? "border-[#FF6B35]/40 text-[#FF6B35]"
+                          : undefined
+                      }
+                    >
+                      {screening.result.mode === "llm" ? "LLM · AI" : "Heuristic fallback"}
+                    </Badge>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-muted-foreground">Readiness level</span>
+                      <span className="font-mono font-bold">
+                        {screening.result.score >= 80
+                          ? "Ready for scale-up review"
+                          : screening.result.score >= 60
+                            ? "Partial — inspect findings"
+                            : "Gap — extra evidence needed"}
+                      </span>
+                    </div>
+                    <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
+                      <div
+                        className="h-full rounded-full bg-[#FF6B35] transition-all"
+                        style={{ width: `${screening.result.score}%` }}
+                      />
+                    </div>
+                    <p className="text-sm leading-relaxed text-muted-foreground">
+                      {screening.result.summary}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="rounded-xl border border-border bg-muted/40 p-3">
+                  <p className="mb-1 text-[11px] uppercase tracking-wide text-muted-foreground">
+                    Evidence screened
+                  </p>
+                  <p className="text-sm leading-relaxed text-foreground">
+                    {screening.evidence}
+                  </p>
+                  {screening.usedDefault && (
+                    <p className="mt-1 text-[11px] text-amber-500">
+                      No submitted evidence for this pilot — screened against the default
+                      demo evidence feed.
+                    </p>
+                  )}
+                </div>
+
+                <div className="space-y-3">
+                  <p className="text-[11px] uppercase tracking-wide text-muted-foreground">
+                    Findings with citations
+                  </p>
+                  {screening.result.findings.map((finding, idx) => (
+                    <div
+                      key={idx}
+                      className="flex items-start gap-3 rounded-xl border border-border p-3"
+                    >
+                      <Badge
+                        variant="outline"
+                        className={
+                          finding.verdict === "met"
+                            ? "border-emerald-600/30 text-emerald-600 dark:text-emerald-400"
+                            : finding.verdict === "partial"
+                              ? "border-amber-600/30 text-amber-600 dark:text-amber-400"
+                              : "border-rose-600/30 text-rose-600 dark:text-rose-400"
+                        }
+                      >
+                        {finding.verdict}
+                      </Badge>
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium">{finding.area}</p>
+                        <p className="font-mono text-xs text-muted-foreground">
+                          {finding.citation}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </>
+            ) : (
+              <p className="text-sm text-rose-500">
+                AI screening failed — please retry, or proceed with the manual QCBS rubric.
+              </p>
+            )}
+          </CardContent>
+          {screening.result && !screening.loading && (
+            <CardFooter className="flex flex-wrap items-center justify-between gap-2">
+              <p className="text-xs text-muted-foreground">
+                Screening is assistive only — the QCBS rubric is the human approval gate.
+              </p>
+              <Button size="sm" variant="outline" className="gap-2" onClick={() => onEvaluate(screening.pilot)}>
+                <Sliders className="size-4" /> Audit & Evaluate {screening.pilot.startup_name}
+              </Button>
+            </CardFooter>
+          )}
+        </Card>
+      )}
     </div>
   );
 }
@@ -1542,6 +1880,230 @@ function DecimalStats({
           </CardContent>
         </Card>
       ))}
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Impact panel (policymaker analytics)                                 */
+/* ------------------------------------------------------------------ */
+
+function ImpactPanel({ impact }: { impact: ImpactMetrics }) {
+  const funnelSteps = [
+    { label: "Published Challenges", value: impact.funnel.published },
+    { label: "Startups Onboarded", value: impact.funnel.applied },
+    { label: "Pilots Completed", value: impact.funnel.completed },
+    { label: "Scale-Ups Approved", value: impact.funnel.scaled },
+  ];
+  const funnelMax = Math.max(impact.funnel.published, 1);
+
+  const kpi = [
+    { label: "Challenges Published", value: String(impact.funnel.published), icon: FileText, accent: false },
+    { label: "Startups Onboarded", value: String(impact.funnel.applied), icon: Rocket, accent: true },
+    { label: "Scale-Ups Approved", value: String(impact.funnel.scaled), icon: Trophy, accent: true },
+    { label: "Escrow Managed", value: compactCurrency(impact.escrowAllocated), icon: Wallet, accent: true },
+  ];
+
+  const sectorMax = Math.max(impact.sectors[0]?.challenges ?? 0, 1);
+
+  return (
+    <div className="space-y-6">
+      <SectionHeading
+        icon={TrendingUp}
+        title="Policymaker Impact"
+        description="Live funnel, budget utilisation and pipeline velocity computed from challenge & pilot data."
+      />
+
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {kpi.map((k) => (
+          <Card key={k.label}>
+            <CardContent className="flex items-center gap-4">
+              <div className="flex size-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                <k.icon className="size-5" />
+              </div>
+              <div>
+                <p
+                  className={`font-mono text-2xl font-black leading-none ${
+                    k.accent ? "text-[#FF6B35]" : ""
+                  }`}
+                >
+                  {k.value}
+                </p>
+                <p className="mt-1 text-sm text-muted-foreground">{k.label}</p>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      <div className="grid gap-6 lg:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-base">
+              <ClipboardCheck className="size-4 text-[#FF6B35]" /> Innovation Funnel
+            </CardTitle>
+            <CardDescription>
+              Conversion of published challenges into scaled-up pilots.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {funnelSteps.map((step, idx) => (
+              <div key={step.label}>
+                <div className="mb-1 flex items-center justify-between text-xs">
+                  <span className="font-medium">{step.label}</span>
+                  <span className="font-mono font-bold text-muted-foreground">
+                    {step.value}
+                  </span>
+                </div>
+                <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
+                  <div
+                    className={`h-full rounded-full transition-all ${
+                      idx === funnelSteps.length - 1
+                        ? "bg-[#FF6B35]"
+                        : "bg-primary"
+                    }`}
+                    style={{ width: `${Math.round((step.value / funnelMax) * 100)}%` }}
+                  />
+                </div>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Wallet className="size-4 text-[#FF6B35]" /> Budget & Escrow Utilisation
+            </CardTitle>
+            <CardDescription>
+              State funds parked vs. milestone-linked tranches disbursed.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-3 gap-3 text-center">
+              {[
+                { label: "Challenge Budget", value: compactCurrency(impact.challengeBudget) },
+                { label: "In Pilot Tranches", value: compactCurrency(impact.trancheBudget) },
+                { label: "Escrow Disbursed", value: compactCurrency(impact.escrowDisbursed) },
+              ].map((stat) => (
+                <div key={stat.label} className="rounded-xl bg-muted/60 p-3">
+                  <p className="font-mono text-sm font-black text-[#FF6B35]">
+                    {stat.value}
+                  </p>
+                  <p className="mt-0.5 text-[10px] uppercase tracking-wide text-muted-foreground">
+                    {stat.label}
+                  </p>
+                </div>
+              ))}
+            </div>
+            <div>
+              <div className="mb-1 flex items-center justify-between text-xs">
+                <span className="text-muted-foreground">Escrow utilisation</span>
+                <span className="font-mono font-bold">{impact.escrowUtilization}%</span>
+              </div>
+              <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
+                <div
+                  className="h-full rounded-full bg-[#FF6B35] transition-all"
+                  style={{ width: `${Math.min(impact.escrowUtilization, 100)}%` }}
+                />
+              </div>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Badge variant="outline" className="border-[#FF6B35]/40 font-mono text-[#FF6B35]">
+                Approval rate · {impact.approvalRate ?? 0}%
+              </Badge>
+              <Badge variant="outline" className="border-[#FF6B35]/40 font-mono text-[#FF6B35]">
+                Avg QCBS · {impact.avgWeightedScore !== null ? `${impact.avgWeightedScore.toFixed(1)}%` : "—"}
+              </Badge>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="grid gap-6 lg:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Building2 className="size-4 text-[#FF6B35]" /> Sector Distribution
+            </CardTitle>
+            <CardDescription>
+              Published challenges grouped by line of department.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {impact.sectors.length === 0 ? (
+              <p className="text-sm text-muted-foreground">No challenges published yet.</p>
+            ) : (
+              impact.sectors.map((sector) => (
+                <div key={sector.name}>
+                  <div className="mb-1 flex items-center justify-between text-xs">
+                    <span className="font-medium">{sector.name}</span>
+                    <span className="font-mono font-bold text-muted-foreground">
+                      {sector.challenges} challenge{sector.challenges === 1 ? "" : "s"}
+                    </span>
+                  </div>
+                  <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
+                    <div
+                      className="h-full rounded-full bg-primary transition-all"
+                      style={{ width: `${Math.round((sector.challenges / sectorMax) * 100)}%` }}
+                    />
+                  </div>
+                </div>
+              ))
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Zap className="size-4 text-[#FF6B35]" /> Velocity Insights
+            </CardTitle>
+            <CardDescription>
+              Pipeline throughput and average pilot progress.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-2 gap-3">
+              <div className="rounded-xl bg-muted/60 p-3">
+                <p className="font-mono text-xl font-black text-[#FF6B35]">
+                  {impact.medianDaysToComplete !== null
+                    ? `${impact.medianDaysToComplete}d`
+                    : "—"}
+                </p>
+                <p className="mt-0.5 text-[10px] uppercase tracking-wide text-muted-foreground">
+                  Median days to complete
+                </p>
+              </div>
+              <div className="rounded-xl bg-muted/60 p-3">
+                <p className="font-mono text-xl font-black text-[#FF6B35]">
+                  {impact.activePilots}
+                </p>
+                <p className="mt-0.5 text-[10px] uppercase tracking-wide text-muted-foreground">
+                  Pilots in flight
+                </p>
+              </div>
+            </div>
+            <div>
+              <div className="mb-1 flex items-center justify-between text-xs">
+                <span className="text-muted-foreground">Avg milestone progress</span>
+                <span className="font-mono font-bold">{impact.avgMilestoneProgress}%</span>
+              </div>
+              <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
+                <div
+                  className="h-full rounded-full bg-primary transition-all"
+                  style={{ width: `${impact.avgMilestoneProgress}%` }}
+                />
+              </div>
+            </div>
+            <p className="text-xs leading-relaxed text-muted-foreground">
+              {impact.medianDaysToComplete !== null
+                ? `Approved pilots clear the full pipeline in a median of ${impact.medianDaysToComplete} days, from applied to scale-up order.`
+                : "Approve a completed pilot through the Evaluator panel to populate velocity metrics."}
+            </p>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
@@ -1575,6 +2137,11 @@ export default function DashboardPage() {
   const [evaluatingPilot, setEvaluatingPilot] = useState<Pilot | null>(null);
   const [escrowOpen, setEscrowOpen] = useState(false);
   const [demoRunning, setDemoRunning] = useState(false);
+
+  const impact = useMemo(
+    () => computeImpact(challenges, pilots, evaluations, escrow),
+    [challenges, pilots, evaluations, escrow]
+  );
 
   const handleUseInChallenge = (prefill: ChallengePrefill) => {
     setChallengePrefill({ ...prefill });
@@ -1691,6 +2258,9 @@ export default function DashboardPage() {
             <TabsTrigger value="sandbox" className="gap-2 px-4">
               <FlaskConical /> Sandbox
             </TabsTrigger>
+            <TabsTrigger value="impact" className="gap-2 px-4">
+              <TrendingUp /> Impact
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="department">
@@ -1715,6 +2285,7 @@ export default function DashboardPage() {
               pilots={pilots}
               evaluations={evaluations}
               evidenceFeed={evidenceFeed}
+              challenges={challenges}
               onEvaluate={setEvaluatingPilot}
             />
           </TabsContent>
@@ -1726,6 +2297,9 @@ export default function DashboardPage() {
               <SandboxStudio pilots={pilots} onLock={lockSandboxConfig} />
               <SandboxTable pilots={pilots} />
             </div>
+          </TabsContent>
+          <TabsContent value="impact">
+            <ImpactPanel impact={impact} />
           </TabsContent>
         </Tabs>
       </main>

@@ -252,6 +252,21 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - [x] 12.4 Live ticker (marquee), 4 stat cards, 6 feature cards, 5-step How It Works pipeline, For Government / For DPIIT Startups split cards, footer — all in brand palette (`#0F5132`/`#0B3D26`/`#166534` + `#FF6B35` accents, serif headlines, mono numbers, JetBrains/Mono chips).
 - [x] 12.5 Validate with `npx tsc --noEmit`, `npm run lint`, `npm run build`; smoke-test `/` serves 200 with the landing HTML (leave dashboard untouched, 10.8 deploy still on hold).
 
+### 📊 PHASE 13: IMPACT DASHBOARD (policymaker analytics)
+**Goal:** Add a leadership-facing "Impact" persona to the `/dashboard` persona switcher that converts existing Supabase/mock data into the funnel + budget KPIs judges and policymakers expect: Published → Applied → Completed → Scaled funnel, ₹ budget in pilots vs escrow utilization, median days-to-completed, and per-sector challenge distribution. Pure read/compute over existing `challenges`/`pilots`/`evaluations`/`escrow_transactions` data; no schema changes.
+
+- [x] 13.1 Compute an `impact` metrics object in the dashboard hook — funnel counts per pilot status, budget allocation/utilization, escrow vault/liquidity, completion velocity (median days), sector breakdown — with a mock-fallback implementation for demo mode.
+- [x] 13.2 Add "Impact" persona to the persona switcher + render `ImpactPanel` (KPI stat band, funnel/progress bars, budget-vs-escrow utilization card, sector distribution, velocity insights), all in the emerald-dark/orange brand theme.
+- [x] 13.3 Validate with `npx tsc --noEmit`, `npm run lint`, `npm run build` and a local visual pass (both Live and Demo data modes).
+
+### 🤖 PHASE 14: AI ASSISTIVE EVIDENCE SCREENING
+**Goal:** Make the "Smart Automation" claim real without spending money: an `/api/analysis` route that screens milestone evidence against `target_metrics`, returns readiness score + findings with citations, and always degrades gracefully to a deterministic keyword scorer when no LLM key is present or the provider rate-limits. Uses a free OpenAI-compatible provider (default: Groq; swappable via env). Human stays in the loop — the QCBS rubric modal remains the approval gate.
+
+- [x] 14.1 Create `app/api/analysis/route.ts` — POST `{ evidence_text, target_metrics }` → OpenAI-compatible `chat.completions` via `fetch` (env `AI_BASE_URL`/`AI_API_KEY`/`AI_MODEL`), strict JSON response `{ score, findings[], summary }`; 429/error → deterministic keyword-scorer fallback in the same response shape (label `mode: "heuristic" | "llm"`).
+- [x] 14.2 Upgrade the Startup Hub "Submit Milestone Evidence Feed" to capture a text/link evidence payload and surface the latest evidence to the evaluator panel.
+- [x] 14.3 Evaluator panel + "AI Screening" button that calls `/api/analysis` and renders a readiness gauge, findings with citations, and a score chip; keep the existing "Audit & Evaluate" QCBS flow as the human approval gate.
+- [x] 14.4 Validate `tsc`/`lint`/`build`; smoke-test the route in heuristic mode with env stripped and, if a key is available, one live LLM call.
+
 ## 🚀 DEPLOYMENT CONTEXT (added 2026-08-29)
 - **Live URL:** https://sih-prototype-26136.vercel.app/dashboard (verified HTTP 200, serves dashboard)
 - **Vercel team/scope:** `snxhits-projects-502fa58f` (`team_2BlNaAQsAnLE2Ku3j8ZzQvBF`), account `snxhit` (amitdgames@gmail.com). Project name: `sih-prototype-26136`.
