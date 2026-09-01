@@ -13,10 +13,13 @@ import {
   ClipboardCheck,
   CheckCircle2,
   ShieldCheck,
+  Sliders,
   TrendingUp,
   ArrowRight,
   Plus,
   FileText,
+  FileCode2,
+  FlaskConical,
   Handshake,
   Wallet,
 } from "lucide-react";
@@ -33,6 +36,14 @@ import { createSupabaseClient, type Database } from "@/utils/supabase/client";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 import { downloadGovernmentOrder } from "@/utils/government-order";
+import TemplateStudio from "@/components/templates/TemplateStudio";
+import type { ChallengePrefill } from "@/lib/templates";
+import SandboxStudio from "@/components/sandbox/SandboxStudio";
+import SandboxTable from "@/components/sandbox/SandboxTable";
+import type { SandboxConfig } from "@/lib/sandbox";
+import EvalRubricModal from "@/components/evaluator/EvalRubricModal";
+import type { EvaluationScores } from "@/lib/evaluations";
+import { computeWeightedScore, EVALUATION_THRESHOLD } from "@/lib/evaluations";
 
 interface Challenge {
   id: string;
@@ -41,6 +52,7 @@ interface Challenge {
   description: string;
   target_metrics: string;
   budget_allocation: number;
+  sandbox_template: string;
   created_at: string;
 }
 
@@ -54,6 +66,12 @@ interface Pilot {
   status: PilotStatus;
   current_milestone: number;
   total_milestones: number;
+  tranche_amount: number;
+  environment: string;
+  data_privacy: string;
+  stop_loss: string;
+  ip_retainment: string;
+  audit_score: number;
 }
 
 const currency = (value: number) =>
@@ -86,6 +104,7 @@ const MOCK_CHALLENGES: Challenge[] = [
       "Automate detection of latent disputes in digitised land records and flag high-risk parcels before they escalate into litigation.",
     target_metrics: "95% dispute identification rate",
     budget_allocation: 25000000,
+    sandbox_template: "Geofenced Urban Zone",
     created_at: "2026-07-03",
   },
   {
@@ -96,6 +115,7 @@ const MOCK_CHALLENGES: Challenge[] = [
       "Classify and route citizen grievances to the correct civic department with recommended response actions in real time.",
     target_metrics: "40% reduction in resolution turnaround",
     budget_allocation: 18500000,
+    sandbox_template: "Synthetic Data Testbed",
     created_at: "2026-07-11",
   },
   {
@@ -106,6 +126,7 @@ const MOCK_CHALLENGES: Challenge[] = [
       "Forecast mandi prices using market, weather and export signals to guide procurement scheduling and MSP planning.",
     target_metrics: "88% forecast accuracy over 45 days",
     budget_allocation: 32000000,
+    sandbox_template: "Synthetic Data Testbed",
     created_at: "2026-07-18",
   },
 ];
@@ -119,6 +140,12 @@ const MOCK_PILOTS: Pilot[] = [
     status: "active",
     current_milestone: 2,
     total_milestones: 3,
+    tranche_amount: 1250000,
+    environment: "Geofenced 5km Urban Zone",
+    data_privacy: "Anonymized PII + Edge Ingestion",
+    stop_loss: "Max 5.0% False Positive Tolerance",
+    ip_retainment: "100% Retained by Startup",
+    audit_score: 0,
   },
   {
     id: "p2",
@@ -128,6 +155,12 @@ const MOCK_PILOTS: Pilot[] = [
     status: "active",
     current_milestone: 1,
     total_milestones: 3,
+    tranche_amount: 1200000,
+    environment: "Synthetic Data Testbed",
+    data_privacy: "100% Synthetic Dummy Datasets",
+    stop_loss: "Max 2.0% Anomaly Deviation",
+    ip_retainment: "100% Retained by Startup",
+    audit_score: 0,
   },
   {
     id: "p3",
@@ -137,10 +170,48 @@ const MOCK_PILOTS: Pilot[] = [
     status: "active",
     current_milestone: 3,
     total_milestones: 3,
+    tranche_amount: 2000000,
+    environment: "Synthetic Data Testbed",
+    data_privacy: "100% Synthetic Dummy Datasets",
+    stop_loss: "Relaxed: Max 10.0% Early Prototype",
+    ip_retainment: "100% Retained by Startup",
+    audit_score: 0,
+  },
+];
+
+const MOCK_EVALUATIONS: DbEvaluation[] = [
+  {
+    id: "e1",
+    pilot_id: "p1",
+    technical_merit: 95,
+    kpi_accuracy: 92,
+    cybersecurity: 98,
+    scalability: 88,
+    dpiit_recognition: 100,
+    weighted_score: 94.3,
+    is_approved: true,
+    evaluator_notes: "Clear technical merit; approved for direct GeM conversion.",
+    evaluated_at: "2026-08-04T09:30:00Z",
+    created_at: "2026-08-04T09:30:00Z",
+  },
+  {
+    id: "e2",
+    pilot_id: "p2",
+    technical_merit: 94,
+    kpi_accuracy: 92,
+    cybersecurity: 96,
+    scalability: 92,
+    dpiit_recognition: 100,
+    weighted_score: 94.2,
+    is_approved: true,
+    evaluator_notes: "Strong KPI alignment; cybersecurity posture verified.",
+    evaluated_at: "2026-08-05T11:00:00Z",
+    created_at: "2026-08-05T11:00:00Z",
   },
 ];
 
 type DbPilot = Database["public"]["Tables"]["pilots"]["Row"];
+type DbEvaluation = Database["public"]["Tables"]["evaluations"]["Row"];
 
 /** The single demo startup identity shown across the UI. The `pilots.startup_id`
  *  column is a FK to `profiles.id` -> `auth.users`, which has no rows without an
@@ -156,12 +227,19 @@ function mapDbPilot(row: DbPilot): Pilot {
     status: row.status,
     current_milestone: row.current_milestone,
     total_milestones: row.total_milestones,
+    tranche_amount: row.tranche_amount,
+    environment: row.environment,
+    data_privacy: row.data_privacy,
+    stop_loss: row.stop_loss,
+    ip_retainment: row.ip_retainment,
+    audit_score: row.audit_score,
   };
 }
 
 function useDashboard() {
   const [challenges, setChallenges] = useState<Challenge[]>(MOCK_CHALLENGES);
   const [pilots, setPilots] = useState<Pilot[]>(MOCK_PILOTS);
+  const [evaluations, setEvaluations] = useState<DbEvaluation[]>(MOCK_EVALUATIONS);
   const [isLive, setIsLive] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
 
@@ -200,19 +278,32 @@ function useDashboard() {
     []
   );
 
+  const reloadEvaluations = useCallback(
+    async (client: SupabaseClient<Database>) => {
+      const { data, error } = await client
+        .from("evaluations")
+        .select("*")
+        .order("created_at", { ascending: false });
+      if (!error && data) setEvaluations(data as DbEvaluation[]);
+    },
+    []
+  );
+
   useEffect(() => {
     const client = harness();
     if (!client) return;
     let cancelled = false;
 
     const load = async () => {
-      const [chRes, piRes] = await Promise.all([
+      const [chRes, piRes, evRes] = await Promise.all([
         client.from("challenges").select("*").order("created_at", { ascending: false }),
         client.from("pilots").select("*").order("created_at", { ascending: false }),
+        client.from("evaluations").select("*").order("created_at", { ascending: false }),
       ]);
       if (cancelled) return;
       if (!chRes.error && chRes.data) setChallenges(chRes.data as Challenge[]);
       if (!piRes.error && piRes.data) setPilots((piRes.data as DbPilot[]).map(mapDbPilot));
+      if (!evRes.error && evRes.data) setEvaluations(evRes.data as DbEvaluation[]);
       setIsLive(true);
     };
 
@@ -243,12 +334,19 @@ function useDashboard() {
           reloadChallenges(client);
         }
       )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "evaluations" },
+        () => {
+          reloadEvaluations(client);
+        }
+      )
       .subscribe();
 
     return () => {
       client.removeChannel(channel);
     };
-  }, [harness, reloadPilots, reloadChallenges]);
+  }, [harness, reloadPilots, reloadChallenges, reloadEvaluations]);
 
   // Polling fallback guarantees cross-view sync even if Realtime isn't enabled.
   useEffect(() => {
@@ -257,9 +355,10 @@ function useDashboard() {
     const id = window.setInterval(async () => {
       await reloadPilots(client);
       await reloadChallenges(client);
+      await reloadEvaluations(client);
     }, 6000);
     return () => window.clearInterval(id);
-  }, [harness, isLive, reloadPilots, reloadChallenges]);
+  }, [harness, isLive, reloadPilots, reloadChallenges, reloadEvaluations]);
 
   const publishChallenge = async (form: Omit<Challenge, "id" | "created_at">) => {
     const client = harness();
@@ -270,6 +369,7 @@ function useDashboard() {
         description: form.description,
         target_metrics: form.target_metrics,
         budget_allocation: form.budget_allocation,
+        sandbox_template: form.sandbox_template,
       });
       if (error) {
         notify(`Could not publish challenge: ${error.message}`);
@@ -310,6 +410,12 @@ function useDashboard() {
         status: "active",
         current_milestone: 1,
         total_milestones: 3,
+        tranche_amount: 0,
+        environment: "Geofenced 5km Urban Zone",
+        data_privacy: "Anonymized PII + Edge Ingestion",
+        stop_loss: "Max 5.0% False Positive Tolerance",
+        ip_retainment: "100% Retained by Startup",
+        audit_score: 0,
       },
     ]);
     notify("Application submitted. Your pilot workspace is now active.");
@@ -381,49 +487,161 @@ function useDashboard() {
     });
   };
 
-  const approveScaleUp = async (pilotId: string) => {
-    const approved = pilots.find(
-      (p) => p.id === pilotId && p.status === "completed"
-    );
+  const submitEvaluation = async (
+    pilotId: string,
+    scores: EvaluationScores
+  ) => {
+    const pilot = pilots.find((p) => p.id === pilotId);
+    if (!pilot) return null;
+    const payload = { pilot_id: pilotId, ...scores };
+    const hashTx = () =>
+      `0x${Math.random().toString(16).slice(2, 10)}...${Math.random()
+        .toString(16)
+        .slice(2, 8)}`;
 
     const client = harness();
     if (client && isLive) {
-      const { error } = await client
-        .from("pilots")
-        .update({ status: "scaled_up" })
-        .eq("id", pilotId)
-        .eq("status", "completed");
-      if (error) {
-        notify(`Could not approve scale-up: ${error.message}`);
-        return;
+      try {
+        const res = await fetch("/api/evaluations", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        const result = await res.json();
+        if (res.ok) {
+          await Promise.all([reloadPilots(client), reloadEvaluations(client)]);
+          if (result?.approved) {
+            if (pilot.status !== "scaled_up") issueOrder(pilot);
+            notify(`Evaluation ${result.evaluation?.weighted_score}% · scale-up approved, government order issued.`);
+          } else {
+            notify(`Evaluation recorded at ${result.evaluation?.weighted_score}% · below the ${EVALUATION_THRESHOLD}% threshold.`);
+          }
+          return result ?? null;
+        }
+        notify(`Could not save evaluation: ${result?.error ?? "API error"}`);
+        return null;
+      } catch {
+        // fall through to direct client write
       }
-      await reloadPilots(client);
-      if (approved) issueOrder(approved);
-      notify("Scale-up approved. Government Order generated.");
-      return;
+
+      const { error } = await client
+        .from("evaluations")
+        .upsert(payload, { onConflict: "pilot_id" });
+      if (error) {
+        notify(`Could not save evaluation: ${error.message}`);
+        return null;
+      }
+      const weighted = computeWeightedScore(scores);
+      if (weighted >= EVALUATION_THRESHOLD && pilot.status !== "scaled_up") {
+        await client
+          .from("pilots")
+          .update({ status: "scaled_up", audit_score: weighted })
+          .eq("id", pilotId);
+        await client.from("escrow_transactions").insert({
+          pilot_id: pilotId,
+          amount: pilot.tranche_amount,
+          tx_hash: hashTx(),
+          status: "disbursed",
+        });
+      }
+      await Promise.all([reloadPilots(client), reloadEvaluations(client)]);
+      if (weighted >= EVALUATION_THRESHOLD) issueOrder(pilot);
+      notify(
+        weighted >= EVALUATION_THRESHOLD
+          ? `Evaluation ${weighted}% · scale-up approved, government order issued.`
+          : `Evaluation recorded at ${weighted}% · below the ${EVALUATION_THRESHOLD}% threshold.`
+      );
+      return { approved: weighted >= EVALUATION_THRESHOLD, weighted_score: weighted };
     }
 
+    const weighted = computeWeightedScore(scores);
+    const approved = weighted >= EVALUATION_THRESHOLD;
+    const now = new Date().toISOString();
+    setEvaluations((prev) => [
+      {
+        id: `e${Date.now()}`,
+        pilot_id: pilotId,
+        technical_merit: scores.technical_merit,
+        kpi_accuracy: scores.kpi_accuracy,
+        cybersecurity: scores.cybersecurity,
+        scalability: scores.scalability,
+        dpiit_recognition: scores.dpiit_recognition ?? 100,
+        weighted_score: weighted,
+        is_approved: approved,
+        evaluator_notes: approved ? "Approved at threshold." : "Below threshold.",
+        evaluated_at: now,
+        created_at: now,
+      },
+      ...prev.filter((e) => e.pilot_id !== pilotId),
+    ]);
     setPilots((prev) =>
       prev.map((p) =>
-        p.id === pilotId && p.status === "completed"
-          ? { ...p, status: "scaled_up" }
+        p.id === pilotId
+          ? { ...p, audit_score: weighted, status: approved ? "scaled_up" : p.status }
           : p
       )
     );
-    if (approved) issueOrder(approved);
-    notify("Scale-up approved. Government Order generated.");
+    if (approved) issueOrder(pilot);
+    notify(
+      approved
+        ? `Evaluation ${weighted}% · scale-up approved, government order issued.`
+        : `Evaluation recorded at ${weighted}% · below the ${EVALUATION_THRESHOLD}% threshold.`
+    );
+    return { approved, weighted_score: weighted };
   };
+
+  const lockSandboxConfig = useCallback(
+    async (pilotId: string, sandbox: SandboxConfig) => {
+      const client = harness();
+      if (client && isLive) {
+        try {
+          const res = await fetch("/api/sandbox", {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ pilot_id: pilotId, ...sandbox }),
+          });
+          if (res.ok) {
+            await reloadPilots(client);
+            notify("Sandbox parameters locked & deployed across the active pilot.");
+            return;
+          }
+        } catch {
+          // fall through to direct client write
+        }
+        const { error } = await client
+          .from("pilots")
+          .update(sandbox)
+          .eq("id", pilotId);
+        if (error) {
+          notify(`Could not lock sandbox: ${error.message}`);
+          return;
+        }
+        await reloadPilots(client);
+        notify("Sandbox parameters locked & deployed across the active pilot.");
+        return;
+      }
+      setPilots((prev) =>
+        prev.map((p) =>
+          p.id === pilotId ? { ...p, ...sandbox } : p
+        )
+      );
+      notify("Sandbox parameters locked & deployed across the active pilot.");
+    },
+    [harness, isLive, reloadPilots, notify]
+  );
 
   return {
     challenges,
     pilots,
+    evaluations,
     isLive,
     toast,
     notify,
     publishChallenge,
     applyToChallenge,
     advanceMilestone,
-    approveScaleUp,
+    submitEvaluation,
+    lockSandboxConfig,
   };
 }
 
@@ -453,6 +671,12 @@ function PersonaSwitcher({
           </TabsTrigger>
           <TabsTrigger value="evaluator" className="gap-2 px-3">
             <ShieldCheck /> Evaluator
+          </TabsTrigger>
+          <TabsTrigger value="templates" className="gap-2 px-3">
+            <FileCode2 /> Templates
+          </TabsTrigger>
+          <TabsTrigger value="sandbox" className="gap-2 px-3">
+            <FlaskConical /> Sandbox
           </TabsTrigger>
         </TabsList>
       </Tabs>
@@ -538,14 +762,17 @@ function SectionHeading({
 
 function OutcomeForm({
   onSubmit,
+  prefill,
 }: {
   onSubmit: (form: Omit<Challenge, "id" | "created_at">) => void;
+  prefill?: ChallengePrefill | null;
 }) {
-  const [title, setTitle] = useState("");
+  const [title, setTitle] = useState(prefill?.title ?? "");
   const [description, setDescription] = useState("");
-  const [targetMetrics, setTargetMetrics] = useState("");
+  const [targetMetrics, setTargetMetrics] = useState(prefill?.target_metrics ?? "");
   const [budget, setBudget] = useState("");
-  const [department, setDepartment] = useState("");
+  const [department, setDepartment] = useState(prefill?.department_name ?? "");
+  const [sandboxTemplate, setSandboxTemplate] = useState("Geofenced Urban Zone");
   const [error, setError] = useState("");
 
   const handleSubmit = (event: React.FormEvent) => {
@@ -565,12 +792,14 @@ function OutcomeForm({
       target_metrics: targetMetrics,
       budget_allocation: budgetValue,
       department_name: department,
+      sandbox_template: sandboxTemplate,
     });
     setTitle("");
     setDescription("");
     setTargetMetrics("");
     setBudget("");
     setDepartment("");
+    setSandboxTemplate("Geofenced Urban Zone");
     setError("");
   };
 
@@ -620,6 +849,19 @@ function OutcomeForm({
                   placeholder="25000000"
                 />
               </div>
+            </div>
+            <div className="space-y-1.5 sm:col-span-2">
+              <Label htmlFor="sandbox-template">Sandbox Template</Label>
+              <select
+                id="sandbox-template"
+                value={sandboxTemplate}
+                onChange={(event) => setSandboxTemplate(event.target.value)}
+                className="h-8 w-full rounded-lg border border-input bg-transparent px-2.5 py-1 text-sm outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 dark:bg-input/30"
+              >
+                <option value="Geofenced Urban Zone">Geofenced Urban Zone</option>
+                <option value="Synthetic Data Testbed">Synthetic Data Testbed</option>
+                <option value="Shadow Telemetry Mode">Shadow Telemetry Mode</option>
+              </select>
             </div>
             <div className="space-y-1.5 sm:col-span-2">
               <Label htmlFor="metrics">Target Metrics</Label>
@@ -712,9 +954,11 @@ function PublishedChallengesTable({
 function DepartmentPanel({
   challenges,
   onSubmit,
+  prefill,
 }: {
   challenges: Challenge[];
   onSubmit: (form: Omit<Challenge, "id" | "created_at">) => void;
+  prefill?: ChallengePrefill | null;
 }) {
   return (
     <div className="space-y-6">
@@ -723,7 +967,11 @@ function DepartmentPanel({
         title="Government Department Panel"
         description="Author problem statements, set budgets and manage an open call for solutions."
       />
-      <OutcomeForm onSubmit={onSubmit} />
+      <OutcomeForm
+        key={prefill ? JSON.stringify(prefill) : "initial"}
+        onSubmit={onSubmit}
+        prefill={prefill}
+      />
       <PublishedChallengesTable challenges={challenges} />
     </div>
   );
@@ -986,14 +1234,17 @@ function PhaseMatrix({ pilot }: { pilot: Pilot }) {
 
 function EvaluatorPanel({
   pilots,
-  onApprove,
+  evaluations,
+  onEvaluate,
 }: {
   pilots: Pilot[];
-  onApprove: (pilotId: string) => void;
+  evaluations: DbEvaluation[];
+  onEvaluate: (pilot: Pilot) => void;
 }) {
   const active = pilots.filter((pilot) => pilot.status === "active");
   const ready = pilots.filter((pilot) => pilot.status === "completed");
   const scaled = pilots.filter((pilot) => pilot.status === "scaled_up");
+  const evaluationOf = new Map(evaluations.map((e) => [e.pilot_id, e]));
 
   return (
     <div className="space-y-6">
@@ -1024,6 +1275,7 @@ function EvaluatorPanel({
               <tr className="border-b border-border text-xs uppercase tracking-wide text-muted-foreground">
                 <th className="pb-3 pr-4 font-medium">Startup</th>
                 <th className="pb-3 pr-4 font-medium">Phase Metrics</th>
+                <th className="pb-3 pr-4 font-medium">QCBS Weighted Score</th>
                 <th className="pb-3 pr-4 font-medium">Status</th>
                 <th className="pb-3 pr-4 font-medium">Progress</th>
                 <th className="pb-3 text-right font-medium">Action</th>
@@ -1031,7 +1283,7 @@ function EvaluatorPanel({
             </thead>
             <tbody>
               {pilots.map((pilot) => {
-                const isReady = pilot.status === "completed";
+                const evaluation = evaluationOf.get(pilot.id);
                 return (
                   <tr
                     key={pilot.id}
@@ -1049,6 +1301,24 @@ function EvaluatorPanel({
                       <PhaseMatrix pilot={pilot} />
                     </td>
                     <td className="py-4 pr-4">
+                      {evaluation ? (
+                        <span
+                          className={`inline-flex items-center gap-1.5 font-mono font-bold ${
+                            evaluation.is_approved
+                              ? "text-emerald-600 dark:text-emerald-400"
+                              : "text-amber-600 dark:text-amber-400"
+                          }`}
+                        >
+                          {evaluation.weighted_score}%
+                          {evaluation.is_approved && (
+                            <BadgeCheck className="size-3.5" />
+                          )}
+                        </span>
+                      ) : (
+                        <span className="text-muted-foreground">Pending</span>
+                      )}
+                    </td>
+                    <td className="py-4 pr-4">
                       <Badge
                         variant="outline"
                         className={
@@ -1064,22 +1334,19 @@ function EvaluatorPanel({
                       {pilot.current_milestone}/{pilot.total_milestones} milestones
                     </td>
                     <td className="py-4 text-right">
-                      {isReady ? (
-                        <Button
-                          size="sm"
-                          className="gap-2"
-                          onClick={() => onApprove(pilot.id)}
-                        >
-                          <ShieldCheck /> Verify & Approve Scale-Up
-                        </Button>
-                      ) : pilot.status === "scaled_up" ? (
+                      {pilot.status === "scaled_up" ? (
                         <span className="inline-flex items-center gap-1.5 text-sm font-medium text-emerald-600">
                           <CheckCircle2 className="size-4" /> Approved
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1.5 text-sm text-muted-foreground">
-                          <TrendingUp className="size-4" /> In Evaluation
-                        </span>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="gap-2"
+                          onClick={() => onEvaluate(pilot)}
+                        >
+                          <Sliders className="size-4" /> Audit & Evaluate
+                        </Button>
                       )}
                     </td>
                   </tr>
@@ -1130,10 +1397,27 @@ export default function DashboardPage() {
     publishChallenge,
     applyToChallenge,
     advanceMilestone,
-    approveScaleUp,
+    submitEvaluation,
+    lockSandboxConfig,
+    evaluations,
   } = useDashboard();
 
   const [persona, setPersona] = useState("department");
+  const [challengePrefill, setChallengePrefill] = useState<ChallengePrefill | null>(
+    null
+  );
+  const [evaluatingPilot, setEvaluatingPilot] = useState<Pilot | null>(null);
+
+  const handleUseInChallenge = (prefill: ChallengePrefill) => {
+    setChallengePrefill({ ...prefill });
+    setPersona("department");
+  };
+
+  const handleEvaluationConfirm = async (scores: EvaluationScores) => {
+    if (!evaluatingPilot) return;
+    const result = await submitEvaluation(evaluatingPilot.id, scores);
+    if (result) setEvaluatingPilot(null);
+  };
 
   return (
     <div className="flex flex-1 flex-col">
@@ -1188,10 +1472,20 @@ export default function DashboardPage() {
             <TabsTrigger value="evaluator" className="gap-2 px-4">
               <ShieldCheck /> Evaluator
             </TabsTrigger>
+            <TabsTrigger value="templates" className="gap-2 px-4">
+              <FileCode2 /> Templates
+            </TabsTrigger>
+            <TabsTrigger value="sandbox" className="gap-2 px-4">
+              <FlaskConical /> Sandbox
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="department">
-            <DepartmentPanel challenges={challenges} onSubmit={publishChallenge} />
+            <DepartmentPanel
+              challenges={challenges}
+              onSubmit={publishChallenge}
+              prefill={challengePrefill}
+            />
           </TabsContent>
           <TabsContent value="startup">
             <StartupHub
@@ -1202,7 +1496,20 @@ export default function DashboardPage() {
             />
           </TabsContent>
           <TabsContent value="evaluator">
-            <EvaluatorPanel pilots={pilots} onApprove={approveScaleUp} />
+            <EvaluatorPanel
+              pilots={pilots}
+              evaluations={evaluations}
+              onEvaluate={setEvaluatingPilot}
+            />
+          </TabsContent>
+          <TabsContent value="templates">
+            <TemplateStudio onUseInChallenge={handleUseInChallenge} />
+          </TabsContent>
+          <TabsContent value="sandbox">
+            <div className="space-y-6">
+              <SandboxStudio pilots={pilots} onLock={lockSandboxConfig} />
+              <SandboxTable pilots={pilots} />
+            </div>
           </TabsContent>
         </Tabs>
       </main>
@@ -1223,6 +1530,16 @@ export default function DashboardPage() {
             {toast}
           </div>
         </div>
+      )}
+
+      {evaluatingPilot && (
+        <EvalRubricModal
+          key={evaluatingPilot.id}
+          pilot={evaluatingPilot}
+          existing={evaluations.find((e) => e.pilot_id === evaluatingPilot.id) ?? null}
+          onClose={() => setEvaluatingPilot(null)}
+          onConfirm={handleEvaluationConfirm}
+        />
       )}
     </div>
   );

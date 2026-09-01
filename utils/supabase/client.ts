@@ -28,6 +28,7 @@ export type Database = {
           description: string;
           target_metrics: string;
           budget_allocation: number;
+          sandbox_template: string;
           created_at: string;
         };
         Insert: {
@@ -37,6 +38,7 @@ export type Database = {
           description: string;
           target_metrics: string;
           budget_allocation: number;
+          sandbox_template?: string;
           created_at?: string;
         };
         Update: Partial<Database["public"]["Tables"]["challenges"]["Insert"]>;
@@ -57,6 +59,12 @@ export type Database = {
           status: "active" | "completed" | "scaled_up";
           current_milestone: number;
           total_milestones: number;
+          tranche_amount: number;
+          environment: string;
+          data_privacy: string;
+          stop_loss: string;
+          ip_retainment: string;
+          audit_score: number;
           created_at: string;
         };
         Insert: {
@@ -66,6 +74,12 @@ export type Database = {
           status?: "active" | "completed" | "scaled_up";
           current_milestone?: number;
           total_milestones?: number;
+          tranche_amount?: number;
+          environment?: string;
+          data_privacy?: string;
+          stop_loss?: string;
+          ip_retainment?: string;
+          audit_score?: number;
           created_at?: string;
         };
         Update: Partial<Database["public"]["Tables"]["pilots"]["Insert"]>;
@@ -84,9 +98,114 @@ export type Database = {
           }
         ];
       };
+      templates: {
+        Row: {
+          id: string;
+          template_key: string;
+          doc_id: string;
+          title: string;
+          filename: string;
+          hash: string;
+          labels: string[];
+          default_values: string[];
+          body_template: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          template_key: string;
+          doc_id: string;
+          title: string;
+          filename: string;
+          hash: string;
+          labels: string[];
+          default_values: string[];
+          body_template: string;
+          created_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["templates"]["Insert"]>;
+        Relationships: [];
+      };
+      evaluations: {
+        Row: {
+          id: string;
+          pilot_id: string;
+          technical_merit: number;
+          kpi_accuracy: number;
+          cybersecurity: number;
+          scalability: number;
+          dpiit_recognition: number;
+          weighted_score: number;
+          is_approved: boolean;
+          evaluator_notes: string;
+          evaluated_at: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          pilot_id: string;
+          technical_merit?: number;
+          kpi_accuracy?: number;
+          cybersecurity?: number;
+          scalability?: number;
+          dpiit_recognition?: number;
+          weighted_score?: number;
+          is_approved?: boolean;
+          evaluator_notes?: string;
+          evaluated_at?: string | null;
+          created_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["evaluations"]["Insert"]>;
+        Relationships: [
+          {
+            foreignKeyName: "evaluations_pilot_id_fkey";
+            columns: ["pilot_id"];
+            referencedRelation: "pilots";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
+      escrow_transactions: {
+        Row: {
+          id: string;
+          pilot_id: string | null;
+          amount: number;
+          tx_hash: string;
+          status: "pending" | "disbursed" | "failed";
+          disbursed_at: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          pilot_id?: string | null;
+          amount: number;
+          tx_hash: string;
+          status?: "pending" | "disbursed" | "failed";
+          disbursed_at?: string;
+          created_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["escrow_transactions"]["Insert"]>;
+        Relationships: [
+          {
+            foreignKeyName: "escrow_transactions_pilot_id_fkey";
+            columns: ["pilot_id"];
+            referencedRelation: "pilots";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
     };
     Views: Record<string, never>;
-    Functions: Record<string, never>;
+    Functions: {
+      advance_milestone: {
+        Args: { pilot_id: string };
+        Returns: undefined;
+      };
+      get_escrow_vault_balance: {
+        Args: Record<PropertyKey, never>;
+        Returns: number;
+      };
+    };
     Enums: Record<string, never>;
     CompositeTypes: Record<string, never>;
   };
