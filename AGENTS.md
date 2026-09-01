@@ -243,6 +243,15 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - [x] 11.5 EscrowDrawer: vault balance hero + disbursed figure + coverage bar → orange accents, Landmark/status icons to brand colors; status chips keep semantic emerald/amber/rose.
 - [x] 11.6 Validate with `npx tsc --noEmit`, `npm run lint`, `npm run build`; verify visuals locally (emerald-dark everywhere, orange primaries, serif headings, mono numbers).
 
+### 🟠 PHASE 12: LANDING PAGE AT ORIGIN `/` (source: `govinnovate-os-1/`)
+**Goal:** Serve a polished marketing landing page at the origin URL — the dashboard was on `/dashboard` precisely so `/` could host the brand-facing entry. Mirrors the `govinnovate-os-1/` landing (nav, orbital hero graphic, live ticker, stats, features, how-it-works, for-whom, footer). Pure frontend, server component; no DB/feature changes.
+
+- [x] 12.1 Add the reference motion utilities to `app/globals.css` (`@theme` block: `animate-float-slow`, `animate-float-delayed`, `animate-spin-slow`, `animate-reverse-spin`, `animate-marquee` + keyframes; no JS/animation lib needed).
+- [x] 12.2 Rewrite `app/page.tsx` as an emerald-dark landing: fixed blur nav with serif "GovInnovate OS" brand + gradient logo mark + orange Launch Platform CTA (links to `/dashboard`).
+- [x] 12.3 Hero: split 2-col — serif headline "Where Government Meets Innovation." with italic gradient accent, pulse status chip, primary/secondary CTAs, 4 GFR pillars grid; animated orbital graphic (spinning rings, glowing core hub, 4 floating persona nodes) on the right.
+- [x] 12.4 Live ticker (marquee), 4 stat cards, 6 feature cards, 5-step How It Works pipeline, For Government / For DPIIT Startups split cards, footer — all in brand palette (`#0F5132`/`#0B3D26`/`#166534` + `#FF6B35` accents, serif headlines, mono numbers, JetBrains/Mono chips).
+- [x] 12.5 Validate with `npx tsc --noEmit`, `npm run lint`, `npm run build`; smoke-test `/` serves 200 with the landing HTML (leave dashboard untouched, 10.8 deploy still on hold).
+
 ## 🚀 DEPLOYMENT CONTEXT (added 2026-08-29)
 - **Live URL:** https://sih-prototype-26136.vercel.app/dashboard (verified HTTP 200, serves dashboard)
 - **Vercel team/scope:** `snxhits-projects-502fa58f` (`team_2BlNaAQsAnLE2Ku3j8ZzQvBF`), account `snxhit` (amitdgames@gmail.com). Project name: `sih-prototype-26136`.

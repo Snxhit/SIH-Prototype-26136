@@ -133,3 +133,54 @@
     color: #ffffff;
   }
 }
+
+@theme {
+  --animate-float-slow: floatSlow 6s ease-in-out infinite;
+  --animate-float-delayed: floatDelayed 7s ease-in-out infinite 1s;
+  --animate-spin-slow: spinSlow 24s linear infinite;
+  --animate-reverse-spin: reverseSpin 18s linear infinite;
+  --animate-marquee: marqueeScroll 35s linear infinite;
+
+  @keyframes floatSlow {
+    0%,
+    100% {
+      transform: translateY(0) rotate(0deg);
+    }
+    50% {
+      transform: translateY(-8px) rotate(0.5deg);
+    }
+  }
+  @keyframes floatDelayed {
+    0%,
+    100% {
+      transform: translateY(0) rotate(0deg);
+    }
+    50% {
+      transform: translateY(8px) rotate(-0.5deg);
+    }
+  }
+  @keyframes spinSlow {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
+  @keyframes reverseSpin {
+    from {
+      transform: rotate(360deg);
+    }
+    to {
+      transform: rotate(0deg);
+    }
+  }
+  @keyframes marqueeScroll {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(-50%);
+    }
+  }
+}
