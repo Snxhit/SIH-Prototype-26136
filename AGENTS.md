@@ -225,7 +225,6 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - [x] 10.5 Implement Judge Demo auto-simulation (1-click cycles: evaluator → rubric modal → auto-approval → GO PDF → escrow drawer opens).
 - [x] 10.6 Run `npm run build` and verify zero errors.
 - [x] 10.7 Run `npm run lint` and fix any warnings.
-- [ ] 10.8 Deploy to Vercel and verify all new features in browser.
 
 ### 🟨 PHASE 11: GFR-BRAND DARK UI RESTYLE (source: `govinnovate-os-1/`)
 **Goal:** Restyle the dashboard to match the `govinnovate-os-1/` static prototype's visual identity — deep emerald dark theme with tech-orange accents and serif display type. Pure frontend pass; no database/feature changes.
@@ -250,7 +249,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - [x] 12.2 Rewrite `app/page.tsx` as an emerald-dark landing: fixed blur nav with serif "GovInnovate OS" brand + gradient logo mark + orange Launch Platform CTA (links to `/dashboard`).
 - [x] 12.3 Hero: split 2-col — serif headline "Where Government Meets Innovation." with italic gradient accent, pulse status chip, primary/secondary CTAs, 4 GFR pillars grid; animated orbital graphic (spinning rings, glowing core hub, 4 floating persona nodes) on the right.
 - [x] 12.4 Live ticker (marquee), 4 stat cards, 6 feature cards, 5-step How It Works pipeline, For Government / For DPIIT Startups split cards, footer — all in brand palette (`#0F5132`/`#0B3D26`/`#166534` + `#FF6B35` accents, serif headlines, mono numbers, JetBrains/Mono chips).
-- [x] 12.5 Validate with `npx tsc --noEmit`, `npm run lint`, `npm run build`; smoke-test `/` serves 200 with the landing HTML (leave dashboard untouched, 10.8 deploy still on hold).
+- [x] 12.5 Validate with `npx tsc --noEmit`, `npm run lint`, `npm run build`; smoke-test `/` serves 200 with the landing HTML (leave dashboard untouched).
 
 ### 📊 PHASE 13: IMPACT DASHBOARD (policymaker analytics)
 **Goal:** Add a leadership-facing "Impact" persona to the `/dashboard` persona switcher that converts existing Supabase/mock data into the funnel + budget KPIs judges and policymakers expect: Published → Applied → Completed → Scaled funnel, ₹ budget in pilots vs escrow utilization, median days-to-completed, and per-sector challenge distribution. Pure read/compute over existing `challenges`/`pilots`/`evaluations`/`escrow_transactions` data; no schema changes.

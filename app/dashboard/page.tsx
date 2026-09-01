@@ -258,7 +258,7 @@ const MOCK_PILOTS: Pilot[] = [
     startup_name: "AgriSense Analytics",
     status: "active",
     current_milestone: 2,
-    total_milestones: 3,
+    total_milestones: 4,
     tranche_amount: 1250000,
     environment: "Geofenced 5km Urban Zone",
     data_privacy: "Anonymized PII + Edge Ingestion",
@@ -273,8 +273,8 @@ const MOCK_PILOTS: Pilot[] = [
     startup_id: "s2",
     startup_name: "CivicFlow Labs",
     status: "scaled_up",
-    current_milestone: 3,
-    total_milestones: 3,
+    current_milestone: 4,
+    total_milestones: 4,
     tranche_amount: 1200000,
     environment: "Synthetic Data Testbed",
     data_privacy: "100% Synthetic Dummy Datasets",
@@ -289,8 +289,8 @@ const MOCK_PILOTS: Pilot[] = [
     startup_id: "s3",
     startup_name: "Mandibazaar AI",
     status: "completed",
-    current_milestone: 3,
-    total_milestones: 3,
+    current_milestone: 4,
+    total_milestones: 4,
     tranche_amount: 2000000,
     environment: "Synthetic Data Testbed",
     data_privacy: "100% Synthetic Dummy Datasets",
@@ -596,7 +596,7 @@ function useDashboard() {
         startup_name: DEMO_STARTUP_NAME,
         status: "active",
         current_milestone: 1,
-        total_milestones: 3,
+        total_milestones: 4,
         tranche_amount: 0,
         environment: "Geofenced 5km Urban Zone",
         data_privacy: "Anonymized PII + Edge Ingestion",
@@ -863,29 +863,29 @@ function PersonaSwitcher({
   onChange: (value: string) => void;
 }) {
   return (
-    <div className="flex items-center gap-3 rounded-xl border border-border bg-muted/40 p-1">
-      <span className="hidden pl-2 pr-1 text-xs font-medium text-muted-foreground sm:block">
+    <div className="flex w-full flex-wrap items-center gap-2 rounded-2xl border border-border bg-muted/40 p-1.5">
+      <span className="hidden px-2 text-xs font-medium uppercase tracking-wide text-muted-foreground lg:block">
         Demo as
       </span>
-      <Tabs value={value} onValueChange={onChange}>
-        <TabsList variant="line" className="h-9">
-          <TabsTrigger value="department" className="gap-2 px-3">
-            <Building2 /> Department
+      <Tabs value={value} onValueChange={onChange} className="w-full">
+        <TabsList variant="line" className="h-9 w-full justify-start">
+          <TabsTrigger value="department" className="gap-1.5 px-3 text-xs">
+            <Building2 className="size-3.5" /> Department
           </TabsTrigger>
-          <TabsTrigger value="startup" className="gap-2 px-3">
-            <Rocket /> Startup
+          <TabsTrigger value="startup" className="gap-1.5 px-3 text-xs">
+            <Rocket className="size-3.5" /> Startup
           </TabsTrigger>
-          <TabsTrigger value="evaluator" className="gap-2 px-3">
-            <ShieldCheck /> Evaluator
+          <TabsTrigger value="evaluator" className="gap-1.5 px-3 text-xs">
+            <ShieldCheck className="size-3.5" /> Evaluator
           </TabsTrigger>
-          <TabsTrigger value="templates" className="gap-2 px-3">
-            <FileCode2 /> Templates
+          <TabsTrigger value="templates" className="gap-1.5 px-3 text-xs">
+            <FileCode2 className="size-3.5" /> Templates
           </TabsTrigger>
-          <TabsTrigger value="sandbox" className="gap-2 px-3">
-            <FlaskConical /> Sandbox
+          <TabsTrigger value="sandbox" className="gap-1.5 px-3 text-xs">
+            <FlaskConical className="size-3.5" /> Sandbox
           </TabsTrigger>
-          <TabsTrigger value="impact" className="gap-2 px-3">
-            <TrendingUp /> Impact
+          <TabsTrigger value="impact" className="gap-1.5 px-3 text-xs">
+            <TrendingUp className="size-3.5" /> Impact
           </TabsTrigger>
         </TabsList>
       </Tabs>
@@ -894,13 +894,9 @@ function PersonaSwitcher({
 }
 
 function Header({
-  persona,
-  onPersonaChange,
   escrowBalance,
   onOpenEscrow,
 }: {
-  persona: string;
-  onPersonaChange: (value: string) => void;
   escrowBalance: number;
   onOpenEscrow: () => void;
 }) {
@@ -913,10 +909,10 @@ function Header({
           </div>
           <div className="leading-tight">
             <p className="text-sm font-semibold">
-              Startup Procurement Portal
+              GovInnovate OS · Procure & Scale
             </p>
             <p className="text-xs text-muted-foreground">
-              Government of Maharashtra
+              Government of Maharashtra · SIH 2026
             </p>
           </div>
         </div>
@@ -934,7 +930,6 @@ function Header({
               {compactCurrency(escrowBalance)}
             </span>
           </Button>
-          <PersonaSwitcher value={persona} onChange={onPersonaChange} />
         </div>
       </div>
     </header>
@@ -1283,7 +1278,7 @@ function PipelineTimeline({ pilot }: { pilot: Pilot }) {
               variant="outline"
               className="border-emerald-600/30 text-emerald-700 dark:text-emerald-300"
             >
-              Milestone {pilot.current_milestone} of {pilot.total_milestones + 1}
+              Milestone {pilot.current_milestone} of {pilot.total_milestones}
             </Badge>
           </div>
           <Badge
@@ -1425,13 +1420,23 @@ function StartupHub({
                 <PipelineTimeline pilot={pilot} />
                 {pilot.status === "active" && (
                   <div className="space-y-2">
-                    <div className="flex flex-wrap items-center justify-end gap-2">
-                      {evidenceFeed[pilot.id] ? (
+                    {evidenceFeed[pilot.id] ? (
+                      <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-emerald-600/30 bg-emerald-500/5 px-3 py-2">
                         <span className="inline-flex items-center gap-1.5 text-sm font-medium text-emerald-600 dark:text-emerald-400">
                           <CheckCircle2 className="size-4" /> Evidence feed submitted
                         </span>
-                      ) : (
-                        <div className="w-full space-y-2 rounded-xl border border-border bg-muted/40 p-3">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="gap-2"
+                          onClick={() => onAdvance(pilot.id)}
+                        >
+                          Submit Milestone <ArrowRight />
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="rounded-xl border border-border bg-muted/40 p-3">
+                        <div className="space-y-2">
                           <Label
                             htmlFor={`evidence-${pilot.id}`}
                             className="text-xs text-muted-foreground"
@@ -1451,7 +1456,7 @@ function StartupHub({
                             }
                             className="bg-background/60"
                           />
-                          <div className="flex justify-end">
+                          <div className="flex justify-end gap-2">
                             <Button
                               size="sm"
                               className="gap-2"
@@ -1459,22 +1464,22 @@ function StartupHub({
                                 onSubmitEvidence(pilot.id, drafts[pilot.id] ?? "")
                               }
                             >
-                              <Send className="size-4" /> Submit Milestone Evidence Feed
+                              <Send className="size-4" /> Submit Milestone Evidence
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="gap-2"
+                              onClick={() => onAdvance(pilot.id)}
+                            >
+                              Advance Milestone <ArrowRight />
                             </Button>
                           </div>
                         </div>
-                      )}
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="gap-2"
-                        onClick={() => onAdvance(pilot.id)}
-                      >
-                        Submit Milestone <ArrowRight />
-                      </Button>
-                    </div>
+                      </div>
+                    )}
                     {evidenceFeed[pilot.id] && (
-                      <p className="ml-auto max-w-xl truncate text-right text-xs text-muted-foreground">
+                      <p className="max-w-xl truncate text-xs text-muted-foreground">
                         Latest: {evidenceFeed[pilot.id]}
                       </p>
                     )}
@@ -2183,8 +2188,6 @@ export default function DashboardPage() {
   return (
     <div className="flex flex-1 flex-col">
       <Header
-        persona={persona}
-        onPersonaChange={setPersona}
         escrowBalance={escrow.vault_balance}
         onOpenEscrow={() => setEscrowOpen(true)}
       />
@@ -2207,27 +2210,31 @@ export default function DashboardPage() {
               piloting and technical evaluation.
             </p>
           </div>
-          <div className="flex items-center gap-3 text-sm text-muted-foreground">
-            <span className="inline-flex items-center gap-1.5">
-              <BadgeCheck className="size-4 text-emerald-600" /> DPIIT-backed
-            </span>
-            <span className="inline-flex items-center gap-1.5">
-              <ShieldCheck className="size-4" /> Outcome-based
-            </span>
-            <span
-              className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-medium ${
-                isLive
-                  ? "border-sky-600/30 text-sky-700 dark:text-sky-300"
-                  : "border-amber-600/30 text-amber-700 dark:text-amber-300"
-              }`}
-            >
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="flex items-center gap-2 rounded-2xl border border-border bg-muted/40 px-3.5 py-2 text-sm text-muted-foreground">
+              <span className="inline-flex items-center gap-1.5">
+                <BadgeCheck className="size-4 text-emerald-600" /> DPIIT-backed
+              </span>
+              <span className="h-4 w-px bg-border" />
+              <span className="inline-flex items-center gap-1.5">
+                <ShieldCheck className="size-4" /> Outcome-based
+              </span>
+              <span className="h-4 w-px bg-border" />
               <span
-                className={`size-1.5 rounded-full ${
-                  isLive ? "bg-sky-500" : "bg-amber-500"
+                className={`inline-flex items-center gap-1.5 text-xs font-medium ${
+                  isLive
+                    ? "text-sky-700 dark:text-sky-300"
+                    : "text-amber-700 dark:text-amber-300"
                 }`}
-              />
-              {isLive ? "Live · Supabase" : "Demo · Mock data"}
-            </span>
+              >
+                <span
+                  className={`size-1.5 rounded-full ${
+                    isLive ? "bg-sky-500" : "bg-amber-500"
+                  }`}
+                />
+                {isLive ? "Live · Supabase" : "Demo · Mock data"}
+              </span>
+            </div>
             <Button
               type="button"
               size="sm"
@@ -2242,27 +2249,9 @@ export default function DashboardPage() {
         </div>
 
         <Tabs value={persona} onValueChange={setPersona}>
-          <TabsList className="mb-6 w-fit bg-muted">
-            <TabsTrigger value="department" className="gap-2 px-4">
-              <Building2 /> Department
-            </TabsTrigger>
-            <TabsTrigger value="startup" className="gap-2 px-4">
-              <Rocket /> Startup
-            </TabsTrigger>
-            <TabsTrigger value="evaluator" className="gap-2 px-4">
-              <ShieldCheck /> Evaluator
-            </TabsTrigger>
-            <TabsTrigger value="templates" className="gap-2 px-4">
-              <FileCode2 /> Templates
-            </TabsTrigger>
-            <TabsTrigger value="sandbox" className="gap-2 px-4">
-              <FlaskConical /> Sandbox
-            </TabsTrigger>
-            <TabsTrigger value="impact" className="gap-2 px-4">
-              <TrendingUp /> Impact
-            </TabsTrigger>
-          </TabsList>
-
+          <div className="mb-6">
+            <PersonaSwitcher value={persona} onChange={setPersona} />
+          </div>
           <TabsContent value="department">
             <DepartmentPanel
               challenges={challenges}
