@@ -62,7 +62,7 @@ export default function EvalRubricModal({
         <div className="flex items-center justify-between border-b border-border pb-3">
           <div>
             <h3 className="flex items-center gap-2 text-sm font-bold">
-              <ShieldCheck className="size-4 text-emerald-500" />
+              <ShieldCheck className="size-4 text-[#FF6B35]" />
               Technical Evaluation & Audit Matrix
             </h3>
             <p className="mt-0.5 text-xs text-muted-foreground">
@@ -88,7 +88,7 @@ export default function EvalRubricModal({
                   <span className="font-semibold">{title}</span>
                   <span className="ml-1.5 text-muted-foreground">({weight}% weight)</span>
                 </div>
-                <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400">
+                <span className="font-mono font-bold text-[#FF6B35]">
                   {scores[key]}%
                 </span>
               </div>
@@ -100,7 +100,7 @@ export default function EvalRubricModal({
                 onChange={(event) =>
                   setScores((prev) => ({ ...prev, [key]: Number(event.target.value) }))
                 }
-                className="w-full accent-emerald-500"
+                className="w-full accent-[#FF6B35]"
                 aria-label={title}
               />
               <p className="mt-0.5 text-[11px] text-muted-foreground">{hint}</p>
@@ -112,12 +112,12 @@ export default function EvalRubricModal({
               <span className="font-semibold">DPIIT Startup Recognition Gate</span>
               <span className="ml-1.5 text-muted-foreground">(10% weight)</span>
             </div>
-            <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400">
+            <span className="font-mono font-bold text-[#FF6B35]">
               {DPIIT_SCORE}% (Verified)
             </span>
           </div>
 
-          <div className="flex items-center justify-between rounded-xl bg-muted/60 p-4">
+          <div className="flex items-center justify-between rounded-xl border border-[#FF6B35]/30 bg-[#FF6B35]/15 p-4">
             <div>
               <span className="block text-[10px] font-bold uppercase tracking-wide text-muted-foreground">
                 Weighted Aggregate Score
@@ -128,13 +128,7 @@ export default function EvalRubricModal({
                   : "Below 85.0% · scale-up not cleared"}
               </span>
             </div>
-            <span
-              className={`font-mono text-2xl font-black ${
-                approved
-                  ? "text-emerald-600 dark:text-emerald-400"
-                  : "text-amber-600 dark:text-amber-400"
-              }`}
-            >
+            <span className="font-mono text-2xl font-black text-[#FF6B35]">
               {total.toFixed(1)}%
             </span>
           </div>

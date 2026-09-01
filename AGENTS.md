@@ -227,6 +227,22 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - [x] 10.7 Run `npm run lint` and fix any warnings.
 - [ ] 10.8 Deploy to Vercel and verify all new features in browser.
 
+### 🟨 PHASE 11: GFR-BRAND DARK UI RESTYLE (source: `govinnovate-os-1/`)
+**Goal:** Restyle the dashboard to match the `govinnovate-os-1/` static prototype's visual identity — deep emerald dark theme with tech-orange accents and serif display type. Pure frontend pass; no database/feature changes.
+
+**Design tokens (from govinnovate-os-1 tailwind config + style.css):**
+- Palette: `emerald` bg `#0F5132`, dark `#0B3D26` (cards/drawers), borders `#166534`, lighter hover `#1E7E4A`; `techOrange` `#FF6B35` (primary CTAs, accents, active states), hover `#EA580C`, light `#FFA07A`.
+- Text: crisp white `#FFFFFF`, muted slate `#E2E8F0`.
+- Fonts: **Instrument Serif** (display/serif headlines), **Plus Jakarta Sans** (sans/body), **JetBrains Mono** (mono numbers, hashes, amounts).
+- Shape: `rounded-2xl`/`rounded-3xl` cards, 1px `#166534` borders, orange focus rings on inputs, `#FF6B35`-on-translucent chips with `border-[#FF6B35]/30`.
+
+- [x] 11.1 Replace Geist fonts in `app/layout.tsx` with Plus Jakarta Sans + JetBrains Mono + Instrument Serif (via next/font), force `dark` on `<html>`, update metadata title to "GovInnovate OS | Public Procurement & Sandbox Gateway".
+- [x] 11.2 Remap shadcn theme vars in `app/globals.css` to the emerald-dark palette (bg `#0F5132`, card `#0B3D26`, border/input `#166534`, primary `#FF6B35`, muted `#E2E8F0`, ring `#FF6B35`, soft orange chart ramp, radius bumped to 0.85rem) in both `:root` and `.dark`; map `--font-sans/--font-mono/--font-serif` to the new next/font vars; add orange text selection.
+- [x] 11.3 Dashboard (page.tsx): serif hero heading with orange-gradient italic emphasis (font-serif + `bg-clip-text`), `font-mono font-black` stat numbers in overview cards, Escrow Vault nav pill switched emerald → `#FF6B35`.
+- [x] 11.4 EvalRubricModal: score values + DPIIT gate → `#FF6B35`, sliders `accent-[#FF6B35]`, aggregate panel restyled to `bg-[#FF6B35]/15 border-[#FF6B35]/30` with orange total.
+- [x] 11.5 EscrowDrawer: vault balance hero + disbursed figure + coverage bar → orange accents, Landmark/status icons to brand colors; status chips keep semantic emerald/amber/rose.
+- [x] 11.6 Validate with `npx tsc --noEmit`, `npm run lint`, `npm run build`; verify visuals locally (emerald-dark everywhere, orange primaries, serif headings, mono numbers).
+
 ## 🚀 DEPLOYMENT CONTEXT (added 2026-08-29)
 - **Live URL:** https://sih-prototype-26136.vercel.app/dashboard (verified HTTP 200, serves dashboard)
 - **Vercel team/scope:** `snxhits-projects-502fa58f` (`team_2BlNaAQsAnLE2Ku3j8ZzQvBF`), account `snxhit` (amitdgames@gmail.com). Project name: `sih-prototype-26136`.

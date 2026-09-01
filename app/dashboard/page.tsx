@@ -825,9 +825,9 @@ function Header({
             className="gap-2"
             onClick={onOpenEscrow}
           >
-            <Wallet className="size-4 text-emerald-600 dark:text-emerald-400" />
+            <Wallet className="size-4 text-[#FF6B35]" />
             <span className="hidden sm:inline text-xs">Escrow Vault</span>
-            <span className="inline-flex items-center gap-1.5 rounded-md border border-emerald-600/30 bg-emerald-50 px-2 py-0.5 font-mono text-xs font-bold text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300">
+            <span className="inline-flex items-center gap-1.5 rounded-md border border-[#FF6B35]/40 bg-[#FF6B35]/15 px-2 py-0.5 font-mono text-xs font-bold text-[#FF6B35]">
               {compactCurrency(escrowBalance)}
             </span>
           </Button>
@@ -1536,7 +1536,7 @@ function DecimalStats({
               <row.icon className="size-5" />
             </div>
             <div>
-              <p className="text-2xl font-semibold leading-none">{row.value}</p>
+              <p className="font-mono text-2xl font-black leading-none">{row.value}</p>
               <p className="mt-1 text-sm text-muted-foreground">{row.label}</p>
             </div>
           </CardContent>
@@ -1628,8 +1628,12 @@ export default function DashboardPage() {
             <Badge variant="secondary" className="mb-3 gap-1.5">
               <Landmark className="size-3" /> SIH 2026 · Smart Automation
             </Badge>
-            <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">
-              Public Procurement with a Startup-First Mindset
+            <h1 className="font-serif text-3xl font-normal tracking-tight sm:text-4xl">
+              Public Procurement with a{" "}
+              <em className="bg-gradient-to-r from-[#FF6B35] via-[#FFA07A] to-[#FFFFFF] bg-clip-text italic text-transparent">
+                startup-first
+              </em>{" "}
+              mindset.
             </h1>
             <p className="mt-2 text-muted-foreground">
               A unified demo portal spanning government problem-setting, startup

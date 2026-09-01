@@ -79,7 +79,7 @@ export default function EscrowDrawer({
         <header className="flex items-center justify-between border-b border-border p-5">
           <div>
             <h3 className="flex items-center gap-2 text-sm font-bold">
-              <Landmark className="size-4 text-emerald-500" /> Smart Escrow Vault
+              <Landmark className="size-4 text-[#FF6B35]" /> Smart Escrow Vault
             </h3>
             <p className="mt-0.5 text-xs text-muted-foreground">
               Milestone-linked disbursements · GFR 173(i)
@@ -99,7 +99,7 @@ export default function EscrowDrawer({
           <p className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground">
             Vault Balance (Held)
           </p>
-          <p className="mt-1 font-mono text-3xl font-black tracking-tight">
+          <p className="mt-1 font-mono text-3xl font-black tracking-tight text-[#FF6B35]">
             {inr(escrow.vault_balance)}
           </p>
           <div className="mt-4 grid grid-cols-2 gap-3 text-xs">
@@ -111,9 +111,9 @@ export default function EscrowDrawer({
             </div>
             <div className="rounded-xl bg-muted/60 p-3">
               <p className="text-muted-foreground">Disbursed</p>
-              <p className="mt-0.5 font-mono font-bold text-emerald-600 dark:text-emerald-400">
-                {inr(escrow.total_disbursed)}
-              </p>
+<p className="mt-0.5 font-mono font-bold text-[#FF6B35]">
+                  {inr(escrow.total_disbursed)}
+                </p>
             </div>
           </div>
           <div className="mt-4">
@@ -123,7 +123,7 @@ export default function EscrowDrawer({
             </div>
             <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
               <div
-                className="h-full rounded-full bg-emerald-500 transition-all"
+                className="h-full rounded-full bg-[#FF6B35] transition-all"
                 style={{ width: `${disbursedRatio}%` }}
               />
             </div>
