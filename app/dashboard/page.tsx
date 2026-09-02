@@ -876,7 +876,7 @@ function Header({
           </div>
           <div className="leading-tight">
             <p className="text-sm font-semibold">
-              GovInnovate OS · Procure & Scale
+              GovInnovate · Procure & Scale
             </p>
             <p className="text-xs text-muted-foreground">
               SIH 2026 · Startup-Friendly Procurement Demo

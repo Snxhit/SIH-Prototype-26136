@@ -36,7 +36,7 @@ const ticker: { text: string }[] = [
   { text: "Challenge Model: Land Encroachment AI (₹48L)" },
   { text: "QCBS Rubric · DPIIT Gate Verified" },
   { text: "Sandbox: 5km Urban Zone Parametrized" },
-  { text: "GovInnovate OS Prototype Ready" },
+  { text: "GovInnovate Prototype Ready" },
 ];
 
 const stats = [
@@ -115,9 +115,6 @@ function GlowLogoMark() {
       </div>
       <div className="flex items-center gap-2">
         <span className="text-lg font-bold tracking-normal text-white">GovInnovate</span>
-        <span className="bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-lg font-bold text-transparent">
-          OS
-        </span>
         <span className="ml-1 rounded-full border border-indigo-500/30 bg-indigo-500/15 px-2 py-0.5 font-mono text-[10px] font-bold text-indigo-400">
           PROTOTYPE
         </span>
@@ -375,7 +372,7 @@ export default function Home() {
             <span className="rounded-full border border-emerald-500/30 bg-emerald-500/15 px-3.5 py-1 font-mono text-xs font-bold uppercase tracking-widest text-emerald-400">
               Workflow
             </span>
-            <h2 className="mt-4 text-4xl font-extrabold text-white sm:text-5xl">How GovInnovate OS Works</h2>
+            <h2 className="mt-4 text-4xl font-extrabold text-white sm:text-5xl">How GovInnovate Works</h2>
             <p className="mt-2 text-sm font-medium text-slate-400">
               A 5-step milestone pipeline from challenge formulation to scale-up.
             </p>
@@ -458,7 +455,7 @@ export default function Home() {
             <div className="flex size-8 items-center justify-center rounded-xl bg-gradient-to-tr from-indigo-500 to-purple-500 font-bold text-white">
               <Sparkles className="size-4" />
             </div>
-            <span className="text-base font-bold text-white">GovInnovate OS</span>
+            <span className="text-base font-bold text-white">GovInnovate</span>
             <span className="ml-2 text-xs font-medium text-slate-400">
               Public Procurement & Sandbox Platform Prototype
             </span>

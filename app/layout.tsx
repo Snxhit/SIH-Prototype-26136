@@ -20,7 +20,7 @@ const cormorant = Cormorant_Garamond({
 });
 
 export const metadata: Metadata = {
-  title: "GovInnovate OS | Public Procurement & Sandbox Gateway",
+  title: "GovInnovate | Public Procurement & Sandbox Gateway",
   description:
     "SIH 2026 · Startup-friendly public procurement portal with controlled sandboxes, QCBS evaluation, and smart escrow.",
 };
