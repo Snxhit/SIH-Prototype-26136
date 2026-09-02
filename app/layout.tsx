@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Instrument_Serif, JetBrains_Mono, Plus_Jakarta_Sans } from "next/font/google";
+import { Cormorant_Garamond, JetBrains_Mono, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 
 const jakarta = Plus_Jakarta_Sans({
@@ -12,10 +12,10 @@ const jetbrains = JetBrains_Mono({
   subsets: ["latin"],
 });
 
-const instrument = Instrument_Serif({
-  weight: "400",
+const cormorant = Cormorant_Garamond({
+  weight: ["500", "600", "700"],
   style: ["normal", "italic"],
-  variable: "--font-instrument",
+  variable: "--font-cormorant",
   subsets: ["latin"],
 });
 
@@ -29,7 +29,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="en"
-      className={`${jakarta.variable} ${jetbrains.variable} ${instrument.variable} dark h-full antialiased`}
+      className={`${jakarta.variable} ${jetbrains.variable} ${cormorant.variable} dark h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">{children}</body>
     </html>

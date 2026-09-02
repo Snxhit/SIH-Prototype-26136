@@ -26,10 +26,12 @@ import {
   Zap,
   Sparkles,
   Loader2,
+  Menu,
+  PanelLeft,
+  LayoutGrid,
 } from "lucide-react";
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -851,60 +853,30 @@ function useDashboard() {
   };
 }
 
-/* ------------------------------------------------------------------ */
-/* Persona Header Bar                                                   */
-/* ------------------------------------------------------------------ */
-
-function PersonaSwitcher({
-  value,
-  onChange,
-}: {
-  value: string;
-  onChange: (value: string) => void;
-}) {
-  return (
-    <div className="flex w-full flex-wrap items-center gap-2 rounded-2xl border border-border bg-muted/40 p-1.5">
-      <span className="hidden px-2 text-xs font-medium uppercase tracking-wide text-muted-foreground lg:block">
-        Demo as
-      </span>
-      <Tabs value={value} onValueChange={onChange} className="w-full">
-        <TabsList variant="line" className="h-9 w-full justify-start">
-          <TabsTrigger value="department" className="gap-1.5 px-3 text-xs">
-            <Building2 className="size-3.5" /> Department
-          </TabsTrigger>
-          <TabsTrigger value="startup" className="gap-1.5 px-3 text-xs">
-            <Rocket className="size-3.5" /> Startup
-          </TabsTrigger>
-          <TabsTrigger value="evaluator" className="gap-1.5 px-3 text-xs">
-            <ShieldCheck className="size-3.5" /> Evaluator
-          </TabsTrigger>
-          <TabsTrigger value="templates" className="gap-1.5 px-3 text-xs">
-            <FileCode2 className="size-3.5" /> Templates
-          </TabsTrigger>
-          <TabsTrigger value="sandbox" className="gap-1.5 px-3 text-xs">
-            <FlaskConical className="size-3.5" /> Sandbox
-          </TabsTrigger>
-          <TabsTrigger value="impact" className="gap-1.5 px-3 text-xs">
-            <TrendingUp className="size-3.5" /> Impact
-          </TabsTrigger>
-        </TabsList>
-      </Tabs>
-    </div>
-  );
-}
-
 function Header({
   escrowBalance,
   onOpenEscrow,
+  onToggleSidebar,
 }: {
   escrowBalance: number;
   onOpenEscrow: () => void;
+  onToggleSidebar: () => void;
 }) {
   return (
-    <header className="sticky top-0 z-30 border-b border-border bg-background/80 backdrop-blur-md">
-      <div className="mx-auto flex h-16 max-w-6xl flex-wrap items-center justify-between gap-3 px-4 sm:px-6">
+    <header className="sticky top-0 z-40 border-b border-border bg-background/80 backdrop-blur-md">
+      <div className="mx-auto flex h-16 max-w-7xl flex-wrap items-center justify-between gap-3 px-4 sm:px-6">
         <div className="flex items-center gap-3">
-          <div className="flex size-9 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            onClick={onToggleSidebar}
+            aria-label="Toggle sidebar"
+            className="md:hidden"
+          >
+            <Menu className="size-4" />
+          </Button>
+          <div className="flex size-9 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-purple-500 text-white">
             <Landmark className="size-5" />
           </div>
           <div className="leading-tight">
@@ -924,9 +896,9 @@ function Header({
             className="gap-2"
             onClick={onOpenEscrow}
           >
-            <Wallet className="size-4 text-[#FF6B35]" />
+            <Wallet className="size-4 text-indigo-400" />
             <span className="hidden sm:inline text-xs">Escrow Vault</span>
-            <span className="inline-flex items-center gap-1.5 rounded-md border border-[#FF6B35]/40 bg-[#FF6B35]/15 px-2 py-0.5 font-mono text-xs font-bold text-[#FF6B35]">
+            <span className="inline-flex items-center gap-1.5 rounded-md border border-indigo-500/40 bg-indigo-500/15 px-2 py-0.5 font-mono text-xs font-bold text-indigo-300">
               {compactCurrency(escrowBalance)}
             </span>
           </Button>
@@ -1638,7 +1610,7 @@ function EvaluatorPanel({
                         <div className="leading-tight">
                           <span className="font-medium">{pilot.startup_name}</span>
                           {screened[pilot.id] !== undefined && (
-                            <span className="ml-1.5 inline-flex items-center gap-1 rounded-full border border-[#FF6B35]/30 bg-[#FF6B35]/10 px-2 py-0.5 font-mono text-[11px] font-bold text-[#FF6B35]">
+                            <span className="ml-1.5 inline-flex items-center gap-1 rounded-full border border-[#818cf8]/30 bg-[#818cf8]/10 px-2 py-0.5 font-mono text-[11px] font-bold text-[#818cf8]">
                               <Sparkles className="size-3" /> AI {screened[pilot.id]}%
                             </span>
                           )}
@@ -1702,9 +1674,9 @@ function EvaluatorPanel({
                             disabled={screening?.loading ?? false}
                           >
                             {screening?.pilot.id === pilot.id && screening.loading ? (
-                              <Loader2 className="size-4 animate-spin text-[#FF6B35]" />
+                              <Loader2 className="size-4 animate-spin text-[#818cf8]" />
                             ) : (
-                              <Sparkles className="size-4 text-[#FF6B35]" />
+                              <Sparkles className="size-4 text-[#818cf8]" />
                             )}
                             AI Screening
                           </Button>
@@ -1731,7 +1703,7 @@ function EvaluatorPanel({
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
-              <Sparkles className="size-4 text-[#FF6B35]" /> AI Evidence Screening ·{" "}
+              <Sparkles className="size-4 text-[#818cf8]" /> AI Evidence Screening ·{" "}
               {screening.pilot.startup_name}
             </CardTitle>
             <CardDescription>
@@ -1742,7 +1714,7 @@ function EvaluatorPanel({
           <CardContent className="space-y-5">
             {screening.loading ? (
               <div className="flex items-center gap-3 rounded-xl border border-border bg-muted/40 px-4 py-6 text-sm text-muted-foreground">
-                <Loader2 className="size-5 animate-spin text-[#FF6B35]" />
+                <Loader2 className="size-5 animate-spin text-[#818cf8]" />
                 Running AI readiness screening against target metrics…
               </div>
             ) : screening.result ? (
@@ -1755,7 +1727,7 @@ function EvaluatorPanel({
                           ? "text-emerald-400"
                           : screening.result.score >= 60
                             ? "text-amber-400"
-                            : "text-[#FF6B35]"
+                            : "text-[#818cf8]"
                       }`}
                     >
                       {screening.result.score}
@@ -1767,7 +1739,7 @@ function EvaluatorPanel({
                       variant="outline"
                       className={
                         screening.result.score >= 80
-                          ? "border-[#FF6B35]/40 text-[#FF6B35]"
+                          ? "border-[#818cf8]/40 text-[#818cf8]"
                           : undefined
                       }
                     >
@@ -1787,7 +1759,7 @@ function EvaluatorPanel({
                     </div>
                     <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
                       <div
-                        className="h-full rounded-full bg-[#FF6B35] transition-all"
+                        className="h-full rounded-full bg-[#818cf8] transition-all"
                         style={{ width: `${screening.result.score}%` }}
                       />
                     </div>
@@ -1929,7 +1901,7 @@ function ImpactPanel({ impact }: { impact: ImpactMetrics }) {
               <div>
                 <p
                   className={`font-mono text-2xl font-black leading-none ${
-                    k.accent ? "text-[#FF6B35]" : ""
+                    k.accent ? "text-[#818cf8]" : ""
                   }`}
                 >
                   {k.value}
@@ -1945,7 +1917,7 @@ function ImpactPanel({ impact }: { impact: ImpactMetrics }) {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
-              <ClipboardCheck className="size-4 text-[#FF6B35]" /> Innovation Funnel
+              <ClipboardCheck className="size-4 text-[#818cf8]" /> Innovation Funnel
             </CardTitle>
             <CardDescription>
               Conversion of published challenges into scaled-up pilots.
@@ -1964,7 +1936,7 @@ function ImpactPanel({ impact }: { impact: ImpactMetrics }) {
                   <div
                     className={`h-full rounded-full transition-all ${
                       idx === funnelSteps.length - 1
-                        ? "bg-[#FF6B35]"
+                        ? "bg-[#818cf8]"
                         : "bg-primary"
                     }`}
                     style={{ width: `${Math.round((step.value / funnelMax) * 100)}%` }}
@@ -1978,7 +1950,7 @@ function ImpactPanel({ impact }: { impact: ImpactMetrics }) {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
-              <Wallet className="size-4 text-[#FF6B35]" /> Budget & Escrow Utilisation
+              <Wallet className="size-4 text-[#818cf8]" /> Budget & Escrow Utilisation
             </CardTitle>
             <CardDescription>
               State funds parked vs. milestone-linked tranches disbursed.
@@ -1992,7 +1964,7 @@ function ImpactPanel({ impact }: { impact: ImpactMetrics }) {
                 { label: "Escrow Disbursed", value: compactCurrency(impact.escrowDisbursed) },
               ].map((stat) => (
                 <div key={stat.label} className="rounded-xl bg-muted/60 p-3">
-                  <p className="font-mono text-sm font-black text-[#FF6B35]">
+                  <p className="font-mono text-sm font-black text-[#818cf8]">
                     {stat.value}
                   </p>
                   <p className="mt-0.5 text-[10px] uppercase tracking-wide text-muted-foreground">
@@ -2008,16 +1980,16 @@ function ImpactPanel({ impact }: { impact: ImpactMetrics }) {
               </div>
               <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
                 <div
-                  className="h-full rounded-full bg-[#FF6B35] transition-all"
+                  className="h-full rounded-full bg-[#818cf8] transition-all"
                   style={{ width: `${Math.min(impact.escrowUtilization, 100)}%` }}
                 />
               </div>
             </div>
             <div className="flex flex-wrap gap-2">
-              <Badge variant="outline" className="border-[#FF6B35]/40 font-mono text-[#FF6B35]">
+              <Badge variant="outline" className="border-[#818cf8]/40 font-mono text-[#818cf8]">
                 Approval rate · {impact.approvalRate ?? 0}%
               </Badge>
-              <Badge variant="outline" className="border-[#FF6B35]/40 font-mono text-[#FF6B35]">
+              <Badge variant="outline" className="border-[#818cf8]/40 font-mono text-[#818cf8]">
                 Avg QCBS · {impact.avgWeightedScore !== null ? `${impact.avgWeightedScore.toFixed(1)}%` : "—"}
               </Badge>
             </div>
@@ -2029,7 +2001,7 @@ function ImpactPanel({ impact }: { impact: ImpactMetrics }) {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
-              <Building2 className="size-4 text-[#FF6B35]" /> Sector Distribution
+              <Building2 className="size-4 text-[#818cf8]" /> Sector Distribution
             </CardTitle>
             <CardDescription>
               Published challenges grouped by line of department.
@@ -2062,7 +2034,7 @@ function ImpactPanel({ impact }: { impact: ImpactMetrics }) {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
-              <Zap className="size-4 text-[#FF6B35]" /> Velocity Insights
+              <Zap className="size-4 text-[#818cf8]" /> Velocity Insights
             </CardTitle>
             <CardDescription>
               Pipeline throughput and average pilot progress.
@@ -2071,7 +2043,7 @@ function ImpactPanel({ impact }: { impact: ImpactMetrics }) {
           <CardContent className="space-y-4">
             <div className="grid grid-cols-2 gap-3">
               <div className="rounded-xl bg-muted/60 p-3">
-                <p className="font-mono text-xl font-black text-[#FF6B35]">
+                <p className="font-mono text-xl font-black text-[#818cf8]">
                   {impact.medianDaysToComplete !== null
                     ? `${impact.medianDaysToComplete}d`
                     : "—"}
@@ -2081,7 +2053,7 @@ function ImpactPanel({ impact }: { impact: ImpactMetrics }) {
                 </p>
               </div>
               <div className="rounded-xl bg-muted/60 p-3">
-                <p className="font-mono text-xl font-black text-[#FF6B35]">
+                <p className="font-mono text-xl font-black text-[#818cf8]">
                   {impact.activePilots}
                 </p>
                 <p className="mt-0.5 text-[10px] uppercase tracking-wide text-muted-foreground">
@@ -2114,6 +2086,159 @@ function ImpactPanel({ impact }: { impact: ImpactMetrics }) {
 }
 
 /* ------------------------------------------------------------------ */
+/* Overview panel (high-level command center landing view)              */
+/* ------------------------------------------------------------------ */
+
+function OverviewPanel({
+  pilots,
+  challenges,
+  evaluations,
+  escrow,
+  goTo,
+}: {
+  pilots: Pilot[];
+  challenges: Challenge[];
+  evaluations: DbEvaluation[];
+  escrow: EscrowState;
+  goTo: (section: string) => void;
+}) {
+  const active = pilots.filter((p) => p.status === "active").length;
+  const completed = pilots.filter(
+    (p) => p.status === "completed" || p.status === "scaled_up"
+  ).length;
+  const scaled = pilots.filter((p) => p.status === "scaled_up").length;
+  const approved = evaluations.filter((e) => e.is_approved).length;
+
+  const actions: {
+    icon: React.ElementType;
+    title: string;
+    body: string;
+    section: string;
+    cta: string;
+    accent: string;
+  }[] = [
+    {
+      icon: Landmark,
+      title: "Department Studio",
+      body: `Publish outcome-based challenges · ${challenges.length} live`,
+      section: "department",
+      cta: "Post a challenge",
+      accent: "text-indigo-400",
+    },
+    {
+      icon: Rocket,
+      title: "Startup Hub",
+      body: `Browse open calls and drive your pilot milestones`,
+      section: "startup",
+      cta: "Open workspace",
+      accent: "text-cyan-400",
+    },
+    {
+      icon: ShieldCheck,
+      title: "Evaluator Desk",
+      body: `${pilots.length} pilots · ${approved} scale-up approvals to track`,
+      section: "evaluator",
+      cta: "Audit pilots",
+      accent: "text-emerald-400",
+    },
+    {
+      icon: FileCode2,
+      title: "Template Studio",
+      body: "6 GFR & CVC aligned legal document models",
+      section: "templates",
+      cta: "Open templates",
+      accent: "text-purple-400",
+    },
+    {
+      icon: FlaskConical,
+      title: "Sandbox Studio",
+      body: "Configure environment, data and stop-loss per pilot",
+      section: "sandbox",
+      cta: "Configure sandbox",
+      accent: "text-indigo-400",
+    },
+    {
+      icon: TrendingUp,
+      title: "Impact Analytics",
+      body: "Funnel, budget utilisation and pipeline velocity",
+      section: "impact",
+      cta: "View analytics",
+      accent: "text-emerald-400",
+    },
+  ];
+
+  const kpis = [
+    { label: "Challenges", value: String(challenges.length), icon: FileText },
+    { label: "Active Pilots", value: String(active), icon: Users },
+    { label: "Completed", value: String(completed), icon: CheckCircle2 },
+    { label: "Scale-Ups", value: String(scaled), icon: Trophy },
+    { label: "Escrow Managed", value: compactCurrency(escrow.total_allocated), icon: Wallet },
+    { label: "Vault Liquidity", value: compactCurrency(escrow.vault_balance), icon: Landmark },
+  ];
+
+  return (
+    <div className="space-y-6">
+      <SectionHeading
+        icon={LayoutGrid}
+        title="Command Center"
+        description="One platform for problem-setting, piloting, evaluation and escrow — jump into any workspace below."
+      />
+
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+        {kpis.map((k) => (
+          <Card key={k.label}>
+            <CardContent className="flex items-center gap-3">
+              <div className="flex size-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                <k.icon className="size-4.5" />
+              </div>
+              <div className="min-w-0">
+                <p className="truncate font-mono text-lg font-black leading-none">
+                  {k.value}
+                </p>
+                <p className="mt-1 truncate text-xs text-muted-foreground">{k.label}</p>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      <div>
+        <h3 className="mb-3 text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+          Workspaces
+        </h3>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {actions.map((a) => (
+            <Card key={a.section} className="flex flex-col">
+              <CardContent className="flex flex-1 flex-col gap-3">
+                <div className="flex items-center gap-3">
+                  <div
+                    className={`flex size-10 items-center justify-center rounded-xl border border-border bg-white/5 ${a.accent}`}
+                  >
+                    <a.icon className="size-5" />
+                  </div>
+                  <h3 className="text-sm font-semibold">{a.title}</h3>
+                </div>
+                <p className="text-xs leading-relaxed text-muted-foreground">{a.body}</p>
+              </CardContent>
+              <CardFooter>
+                <Button
+                  variant="outline"
+                  className="w-full justify-between gap-2"
+                  onClick={() => goTo(a.section)}
+                >
+                  <span>{a.cta}</span>
+                  <ArrowRight className="size-4" />
+                </Button>
+              </CardFooter>
+            </Card>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
 /* Page root                                                           */
 /* ------------------------------------------------------------------ */
 
@@ -2135,7 +2260,8 @@ export default function DashboardPage() {
     notify,
   } = useDashboard();
 
-  const [persona, setPersona] = useState("department");
+  const [persona, setPersona] = useState("overview");
+  const [collapsed, setCollapsed] = useState(false);
   const [challengePrefill, setChallengePrefill] = useState<ChallengePrefill | null>(
     null
   );
@@ -2185,116 +2311,235 @@ export default function DashboardPage() {
     setDemoRunning(false);
   };
 
+  const navItems: {
+    id: string;
+    label: string;
+    icon: React.ElementType;
+  }[] = [
+    { id: "overview", label: "Overview", icon: LayoutGrid },
+    { id: "department", label: "Department", icon: Building2 },
+    { id: "startup", label: "Startup Hub", icon: Rocket },
+    { id: "evaluator", label: "Evaluator", icon: ShieldCheck },
+    { id: "templates", label: "Templates", icon: FileCode2 },
+    { id: "sandbox", label: "Sandbox", icon: FlaskConical },
+    { id: "impact", label: "Impact", icon: TrendingUp },
+  ];
+
+  const renderSection = () => {
+    switch (persona) {
+      case "overview":
+        return (
+          <OverviewPanel
+            pilots={pilots}
+            challenges={challenges}
+            evaluations={evaluations}
+            escrow={escrow}
+            goTo={setPersona}
+          />
+        );
+      case "department":
+        return (
+          <DepartmentPanel
+            challenges={challenges}
+            onSubmit={publishChallenge}
+            prefill={challengePrefill}
+          />
+        );
+      case "startup":
+        return (
+          <StartupHub
+            challenges={challenges}
+            pilots={pilots}
+            evidenceFeed={evidenceFeed}
+            onApply={applyToChallenge}
+            onAdvance={advanceMilestone}
+            onSubmitEvidence={submitMilestoneEvidence}
+          />
+        );
+      case "evaluator":
+        return (
+          <EvaluatorPanel
+            pilots={pilots}
+            evaluations={evaluations}
+            evidenceFeed={evidenceFeed}
+            challenges={challenges}
+            onEvaluate={setEvaluatingPilot}
+          />
+        );
+      case "templates":
+        return <TemplateStudio onUseInChallenge={handleUseInChallenge} />;
+      case "sandbox":
+        return (
+          <div className="space-y-6">
+            <SandboxStudio pilots={pilots} onLock={lockSandboxConfig} />
+            <SandboxTable pilots={pilots} />
+          </div>
+        );
+      case "impact":
+        return <ImpactPanel impact={impact} />;
+      default:
+        return null;
+    }
+  };
+
   return (
-    <div className="flex flex-1 flex-col">
+    <div className="flex min-h-screen flex-col">
       <Header
         escrowBalance={escrow.vault_balance}
         onOpenEscrow={() => setEscrowOpen(true)}
+        onToggleSidebar={() => setCollapsed((c) => !c)}
       />
-      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6">
-        {/* Intro hero */}
-        <div className="mb-8 flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
-          <div className="max-w-2xl">
-            <Badge variant="secondary" className="mb-3 gap-1.5">
-              <Landmark className="size-3" /> SIH 2026 · Smart Automation
-            </Badge>
-            <h1 className="font-serif text-3xl font-normal tracking-tight sm:text-4xl">
-              Public Procurement with a{" "}
-              <em className="bg-gradient-to-r from-[#FF6B35] via-[#FFA07A] to-[#FFFFFF] bg-clip-text italic text-transparent">
-                startup-first
-              </em>{" "}
-              mindset.
-            </h1>
-            <p className="mt-2 text-muted-foreground">
-              A unified demo portal spanning government problem-setting, startup
-              piloting and technical evaluation.
-            </p>
-          </div>
-          <div className="flex flex-wrap items-center gap-3">
-            <div className="flex items-center gap-2 rounded-2xl border border-border bg-muted/40 px-3.5 py-2 text-sm text-muted-foreground">
-              <span className="inline-flex items-center gap-1.5">
-                <BadgeCheck className="size-4 text-emerald-600" /> DPIIT-backed
+      <div className="mx-auto flex w-full max-w-7xl flex-1 gap-6 px-4 py-6 sm:px-6">
+        {/* Sidebar */}
+        <aside
+          className={`sticky top-24 hidden h-fit shrink-0 flex-col gap-1 rounded-2xl border border-border bg-[#080c14] p-2 transition-all duration-300 md:flex ${
+            collapsed ? "w-16" : "w-56"
+          }`}
+        >
+          <div className={`flex items-center gap-2 px-2 pb-3 pt-1 ${collapsed ? "justify-center" : "justify-between"}`}>
+            {!collapsed && (
+              <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                Sections
               </span>
-              <span className="h-4 w-px bg-border" />
-              <span className="inline-flex items-center gap-1.5">
-                <ShieldCheck className="size-4" /> Outcome-based
-              </span>
-              <span className="h-4 w-px bg-border" />
-              <span
-                className={`inline-flex items-center gap-1.5 text-xs font-medium ${
-                  isLive
-                    ? "text-sky-700 dark:text-sky-300"
-                    : "text-amber-700 dark:text-amber-300"
-                }`}
-              >
-                <span
-                  className={`size-1.5 rounded-full ${
-                    isLive ? "bg-sky-500" : "bg-amber-500"
-                  }`}
-                />
-                {isLive ? "Live · Supabase" : "Demo · Mock data"}
-              </span>
-            </div>
+            )}
             <Button
               type="button"
-              size="sm"
-              className="gap-2"
-              onClick={runAutoDemo}
-              disabled={demoRunning}
+              variant="ghost"
+              size="icon"
+              onClick={() => setCollapsed((c) => !c)}
+              aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+              className="hidden md:inline-flex"
             >
-              <Zap className="size-4" />
-              {demoRunning ? "Running Auto-Demo…" : "Run Auto-Demo"}
+              <PanelLeft className="size-4" />
             </Button>
           </div>
-        </div>
-
-        <Tabs value={persona} onValueChange={setPersona}>
-          <div className="mb-6">
-            <PersonaSwitcher value={persona} onChange={setPersona} />
+          {navItems.map((item) => {
+            const active = persona === item.id;
+            return (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => setPersona(item.id)}
+                title={item.label}
+                className={`flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${
+                  active
+                    ? "bg-primary/15 text-indigo-300"
+                    : "text-muted-foreground hover:bg-white/5 hover:text-foreground"
+                } ${collapsed ? "justify-center" : ""}`}
+              >
+                <item.icon className="size-4 shrink-0" />
+                {!collapsed && <span className="truncate">{item.label}</span>}
+              </button>
+            );
+          })}
+          <div className="mt-auto border-t border-border pt-3">
+            {!collapsed ? (
+              <div className="flex items-center gap-2 rounded-xl bg-muted/60 px-3 py-2.5">
+                <span
+                  className={`size-2 shrink-0 rounded-full ${
+                    isLive ? "bg-emerald-500" : "bg-amber-500"
+                  }`}
+                />
+                <span className="truncate text-xs text-muted-foreground">
+                  {isLive ? "Live · Supabase" : "Demo · Mock data"}
+                </span>
+              </div>
+            ) : (
+              <div className="flex justify-center">
+                <span
+                  className={`size-2 rounded-full ${
+                    isLive ? "bg-emerald-500" : "bg-amber-500"
+                  }`}
+                />
+              </div>
+            )}
           </div>
-          <TabsContent value="department">
-            <DepartmentPanel
-              challenges={challenges}
-              onSubmit={publishChallenge}
-              prefill={challengePrefill}
-            />
-          </TabsContent>
-          <TabsContent value="startup">
-            <StartupHub
-              challenges={challenges}
-              pilots={pilots}
-              evidenceFeed={evidenceFeed}
-              onApply={applyToChallenge}
-              onAdvance={advanceMilestone}
-              onSubmitEvidence={submitMilestoneEvidence}
-            />
-          </TabsContent>
-          <TabsContent value="evaluator">
-            <EvaluatorPanel
-              pilots={pilots}
-              evaluations={evaluations}
-              evidenceFeed={evidenceFeed}
-              challenges={challenges}
-              onEvaluate={setEvaluatingPilot}
-            />
-          </TabsContent>
-          <TabsContent value="templates">
-            <TemplateStudio onUseInChallenge={handleUseInChallenge} />
-          </TabsContent>
-          <TabsContent value="sandbox">
-            <div className="space-y-6">
-              <SandboxStudio pilots={pilots} onLock={lockSandboxConfig} />
-              <SandboxTable pilots={pilots} />
+        </aside>
+
+        {/* Main */}
+        <main className="min-w-0 flex-1">
+          {/* Mobile persona selector */}
+          <div className="mb-5 overflow-x-auto rounded-2xl border border-border bg-[#080c14] p-1.5 md:hidden">
+            <div className="flex w-max gap-1">
+              {navItems.map((item) => (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => setPersona(item.id)}
+                  className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg px-3 py-2 text-xs font-medium transition-colors ${
+                    persona === item.id
+                      ? "bg-primary/15 text-indigo-300"
+                      : "text-muted-foreground hover:bg-white/5"
+                  }`}
+                >
+                  <item.icon className="size-3.5" />
+                  {item.label}
+                </button>
+              ))}
             </div>
-          </TabsContent>
-          <TabsContent value="impact">
-            <ImpactPanel impact={impact} />
-          </TabsContent>
-        </Tabs>
-      </main>
+          </div>
+
+          {persona !== "overview" && (
+            <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+              <div className="max-w-2xl">
+                <Badge variant="secondary" className="mb-3 gap-1.5">
+                  <Landmark className="size-3" /> SIH 2026 · Smart Automation
+                </Badge>
+                <h1 className="text-2xl font-extrabold tracking-tight sm:text-3xl">
+                  Public Procurement with a{" "}
+                  <span className="bg-gradient-to-r from-indigo-400 via-purple-400 to-cyan-400 bg-clip-text italic text-transparent">
+                    startup-first
+                  </span>{" "}
+                  mindset.
+                </h1>
+                <p className="mt-2 text-muted-foreground">
+                  A unified demo portal spanning government problem-setting, startup
+                  piloting and technical evaluation.
+                </p>
+              </div>
+              <div className="flex flex-wrap items-center gap-3">
+                <div className="flex items-center gap-2 rounded-2xl border border-border bg-[#080c14] px-3.5 py-2 text-sm text-muted-foreground">
+                  <span className="inline-flex items-center gap-1.5">
+                    <BadgeCheck className="size-4 text-emerald-500" /> DPIIT-backed
+                  </span>
+                  <span className="h-4 w-px bg-border" />
+                  <span className="inline-flex items-center gap-1.5">
+                    <ShieldCheck className="size-4" /> Outcome-based
+                  </span>
+                  <span className="h-4 w-px bg-border" />
+                  <span
+                    className={`inline-flex items-center gap-1.5 text-xs font-medium ${
+                      isLive ? "text-emerald-400" : "text-amber-400"
+                    }`}
+                  >
+                    <span
+                      className={`size-1.5 rounded-full ${
+                        isLive ? "bg-emerald-500" : "bg-amber-500"
+                      }`}
+                    />
+                    {isLive ? "Live · Supabase" : "Demo · Mock data"}
+                  </span>
+                </div>
+                <Button
+                  type="button"
+                  size="sm"
+                  className="gap-2"
+                  onClick={runAutoDemo}
+                  disabled={demoRunning}
+                >
+                  <Zap className="size-4" />
+                  {demoRunning ? "Running Auto-Demo…" : "Run Auto-Demo"}
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {renderSection()}
+        </main>
+      </div>
 
       <footer className="border-t border-border py-6">
-        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-2 px-4 text-sm text-muted-foreground sm:px-6">
+        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-2 px-4 text-sm text-muted-foreground sm:px-6">
           <p>Smart Automation · Startup-Friendly Public Procurement</p>
           <p className="inline-flex items-center gap-1.5">
             <Handshake className="size-4" /> For hackathon judging demo
@@ -2304,8 +2549,8 @@ export default function DashboardPage() {
 
       {toast && (
         <div className="pointer-events-none fixed inset-x-0 bottom-6 z-50 flex justify-center px-4">
-          <div className="flex items-center gap-2.5 rounded-xl border border-emerald-600/30 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-900 shadow-lg dark:bg-emerald-500/10 dark:text-emerald-200">
-            <CheckCircle2 className="size-4 shrink-0 text-emerald-600" />
+          <div className="flex items-center gap-2.5 rounded-xl border border-emerald-600/30 bg-emerald-500/10 px-4 py-3 text-sm font-medium text-emerald-200 shadow-lg">
+            <CheckCircle2 className="size-4 shrink-0 text-emerald-500" />
             {toast}
           </div>
         </div>
