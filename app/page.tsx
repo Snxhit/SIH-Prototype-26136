@@ -170,6 +170,15 @@ export default function Home() {
       <section className="relative flex min-h-screen items-center overflow-hidden pb-20 pt-24">
         <div className="pointer-events-none absolute -z-10 left-1/3 top-1/4 h-[450px] w-[850px] -translate-x-1/2 rounded-full bg-indigo-600/20 blur-[140px]" />
         <div className="pointer-events-none absolute -z-10 right-0 top-1/3 h-[300px] w-[300px] rounded-full bg-purple-600/10 blur-[120px]" />
+        <div className="pointer-events-none absolute -z-10 bottom-10 left-1/3 h-[300px] w-[500px] rounded-full bg-emerald-500/10 blur-[110px]" />
+        <div
+          className="pointer-events-none absolute -z-10 inset-0"
+          style={{
+            backgroundImage:
+              "linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px)",
+            backgroundSize: "50px 50px",
+          }}
+        />
         <div className="relative z-10 mx-auto grid w-full max-w-7xl grid-cols-1 items-center gap-12 px-6 lg:grid-cols-12 lg:gap-8">
           {/* Left */}
           <div className="space-y-6 text-left lg:col-span-6">
