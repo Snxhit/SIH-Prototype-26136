@@ -40,7 +40,7 @@ const ticker: { text: string }[] = [
 ];
 
 const stats = [
-  { value: "₹10 Cr+", label: "Escrow Pool", sub: "Aggregate platform liquidity", accent: "text-indigo-400" },
+  { value: "₹4.45 Cr", label: "Escrow Pool", sub: "Demo vault under management", accent: "text-indigo-400" },
   { value: "6", label: "Legal Templates", sub: "GFR & CVC aligned models", accent: "text-emerald-400" },
   { value: "48h", label: "Disbursement SLA", sub: "Automated audit release", accent: "text-cyan-400" },
   { value: "100%", label: "IP Retained", sub: "Owned by startups", accent: "text-purple-400" },
@@ -268,7 +268,7 @@ export default function Home() {
                 </div>
                 <div>
                   <div className="text-[11px] font-bold text-white">Smart Escrow</div>
-                  <div className="font-mono text-[10px] font-bold text-emerald-400">₹4.85 Cr Secured</div>
+                  <div className="font-mono text-[10px] font-bold text-emerald-400">₹4.45 Cr Managed</div>
                 </div>
               </div>
 

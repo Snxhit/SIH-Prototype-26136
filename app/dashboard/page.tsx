@@ -111,11 +111,6 @@ const STATUS_LABEL: Record<PilotStatus, string> = {
   scaled_up: "Scale-Up Approved",
 };
 
-const dippNumber = (id: string) =>
-  `DIPP-${id
-    .split("")
-    .reduce((acc, char) => (acc * 31 + char.charCodeAt(0)) % 900000 + 100000, 7)}`;
-
 /* ------------------------------------------------------------------ */
 /* Impact metrics (policymaker analytics)                               */
 /* ------------------------------------------------------------------ */
@@ -884,7 +879,7 @@ function Header({
               GovInnovate OS · Procure & Scale
             </p>
             <p className="text-xs text-muted-foreground">
-              Government of Maharashtra · SIH 2026
+              SIH 2026 · Startup-Friendly Procurement Demo
             </p>
           </div>
         </div>
@@ -913,8 +908,8 @@ function DpiitBadge() {
     <div className="flex items-center gap-2 rounded-lg border border-emerald-600/30 bg-emerald-50 px-3 py-2 text-xs font-medium text-emerald-800 dark:bg-emerald-500/10 dark:text-emerald-300">
       <BadgeCheck className="size-4 shrink-0" />
       <span>
-        <span className="font-semibold">DPIIT Registered:</span> Turnover &
-        Experience Requirements Waived
+        <span className="font-semibold">DPIIT startup eligibility:</span> turnover &amp;
+        experience requirements waived via GFR 173(i)
       </span>
     </div>
   );
@@ -1186,22 +1181,30 @@ function ChallengeCard({
   onApply: () => void;
 }) {
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-center justify-between gap-2">
-          <Badge variant="secondary">{challenge.department_name}</Badge>
-          <span className="text-xs text-muted-foreground">
+    <Card className="flex h-full min-w-0 flex-col">
+      <CardHeader className="space-y-2 min-w-0">
+        <div className="flex min-w-0 items-start justify-between gap-2">
+          <Badge variant="secondary" className="shrink-0">
+            {challenge.department_name}
+          </Badge>
+          <span className="shrink-0 text-xs text-muted-foreground">
             Published {challenge.created_at}
           </span>
         </div>
-        <CardTitle className="mt-1 text-base">{challenge.title}</CardTitle>
-        <CardDescription>{challenge.description}</CardDescription>
+        <CardTitle className="text-base leading-snug">
+          <span className="line-clamp-2 break-words">{challenge.title}</span>
+        </CardTitle>
+        <CardDescription className="break-words">
+          <span className="min-w-0">{challenge.description}</span>
+        </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="flex items-center gap-2 rounded-lg bg-muted/60 px-3 py-2 text-sm">
-          <Target className="size-4 shrink-0 text-primary" />
-          <span className="text-muted-foreground">Target: </span>
-          <span className="font-medium">{challenge.target_metrics}</span>
+      <CardContent className="space-y-4 min-w-0">
+        <div className="flex min-w-0 items-start gap-2 rounded-lg bg-muted/60 px-3 py-2 text-sm">
+          <Target className="mt-0.5 size-4 shrink-0 text-primary" />
+          <span className="min-w-0 break-words">
+            <span className="text-muted-foreground">Target: </span>
+            <span className="font-medium">{challenge.target_metrics}</span>
+          </span>
         </div>
         <div className="flex items-center gap-2 text-sm">
           <Wallet className="size-4 shrink-0 text-muted-foreground" />
@@ -1209,7 +1212,7 @@ function ChallengeCard({
           <span className="font-semibold">{currency(challenge.budget_allocation)}</span>
         </div>
       </CardContent>
-      <CardFooter>
+      <CardFooter className="mt-auto">
         <Button
           className="w-full gap-2"
           variant={isApplied ? "secondary" : "default"}
@@ -1244,7 +1247,7 @@ function PipelineTimeline({ pilot }: { pilot: Pilot }) {
               variant="outline"
               className="border-sky-600/30 text-sky-700 dark:text-sky-300"
             >
-              <BadgeCheck className="size-3" /> DPIIT Verified · {dippNumber(pilot.id)}
+              <BadgeCheck className="size-3" /> DPIIT startup status · demo DIPP-XXXXX
             </Badge>
             <Badge
               variant="outline"
@@ -2500,7 +2503,7 @@ export default function DashboardPage() {
               <div className="flex flex-wrap items-center gap-3">
                 <div className="flex items-center gap-2 rounded-2xl border border-border bg-[#080c14] px-3.5 py-2 text-sm text-muted-foreground">
                   <span className="inline-flex items-center gap-1.5">
-                    <BadgeCheck className="size-4 text-emerald-500" /> DPIIT-backed
+                    <BadgeCheck className="size-4 text-emerald-500" /> DPIIT startup-aligned
                   </span>
                   <span className="h-4 w-px bg-border" />
                   <span className="inline-flex items-center gap-1.5">
